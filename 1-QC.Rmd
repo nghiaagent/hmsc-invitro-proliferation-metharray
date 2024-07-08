@@ -1,0 +1,82 @@
+```{r include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+
+# Load data
+source("./scripts/0_meta_env_prep.R")
+
+```
+# Quality control, data exploration
+
+## Data exploration
+
+### MDS
+
+```{r echo=FALSE}
+
+# Load data
+
+quant_ratioset_funnorm_filter <- readRDS(file = file.path("output",
+                                                        "quant_ratioset_funnorm_filter.RDS"))
+
+# Make design matrix
+
+table_design <- quant_ratioset_funnorm_filter@colData %>%
+  as.data.frame() %>%
+  mutate(slide = factor(slide)) %>%
+  # Uncomment below line if analysing hNSC too
+  mutate(cell_line = factor(cell_line, levels = c("hMSC", "hNSC"))) %>%
+  mutate(timepoint = factor(timepoint, levels = c("early", "late"))) %>%
+  # Uncomment below line if analysing hNSC too
+  mutate(passage = factor(passage, levels = c("p5", "p6", "p13", "p27"))) %>%
+  mutate(treatment = factor(treatment, levels = c("untreated", "heparin", "neurosphere")))
+
+
+# Create limma EList object containing beta values
+
+quant_beta_vals <- new("EList")
+quant_beta_vals$E <- getM(quant_ratioset_funnorm_filter)
+quant_beta_vals$targets <- table_design
+quant_beta_vals$genes <- quant_ratioset_funnorm_filter@rowRanges
+
+glimmaMDS(x = quant_beta_vals$E,
+          groups = quant_beta_vals$targets,
+          labels = quant_beta_vals$targets$sample_name,
+          width = 800,
+          height = 500)
+
+```
+
+Suggested settings:
+
+-   `x_axis`: dim1
+
+-   `y_axis`: dim2
+
+-   `colour_y`: treatment
+
+-   `shape_by`: condition_notreat (cell population + timepoint)
+
+MDS plot demonstrates:
+
+-   Cell population differences are captured by dim1.
+
+-   Dim 2 captures time point and treatment differences:
+
+    -   hMSC:
+
+        -   Heparin and untreated hMSC samples at each timepoint cluster closely with each other.
+
+            -   This supports the method of treating untreated + heparin as a group when comparing between timepoints.
+
+        -   Neurosphere treatment doesn't move the methylation profile along dim1, but moves early stage hMSC methylation profile to be more similar to late stage hMSC.
+
+    -   hNSC:
+
+        -   Heparin treatment has small effect on early stage hNSC.
+
+        -   Heparin treatment 'moves' late stage hNSC methylation profile to be closer to early stage hNSC.
+
+### Methylation probes heatmap
+
+![](output/plots_heatmap/heatmap_m_vals.png){width="100%"}
