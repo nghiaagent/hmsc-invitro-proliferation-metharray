@@ -1,0 +1,12 @@
+---
+title: "hMSC + hNSC DNA methylation report"
+author: "Mitchell Nguyen"
+date: "`r Sys.Date()`"
+output: bookdown::gitbook
+documentclass: book
+geometry: margin=2cm
+biblio-style: apalike
+link-citations: yes
+---
+
+# Intro
