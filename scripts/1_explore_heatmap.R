@@ -22,7 +22,7 @@ breaks <- seq(-2, 2, length.out = 100)
 
 col_cell_line <- palettetown::pokepal(6)[c(3, 4)]
 
-col_treatment <- palettetown::pokepal(283)[c(11, 5)]
+col_treatment <- palettetown::pokepal(283)[c(11, 5, 7)]
 
 col_timepoint <- palettetown::pokepal(191)[c(8, 3)]
 
@@ -31,22 +31,22 @@ col_timepoint <- palettetown::pokepal(191)[c(8, 3)]
 ## Dataframe of annotation data
 
 anno <- tibble(
-  `Cell population` = quant_heatmap$targets$cell_line,
-  `Passage` = quant_heatmap$targets$Passage,
-  `Day` = quant_heatmap$targets$Day,
-  `Treatment group` = quant_heatmap$targets$Treatment
+  `Cell population` = quant_ratioset_funnorm_filter@colData@listData[["cell_line"]],
+  `Timepoint` = quant_ratioset_funnorm_filter@colData@listData[["timepoint"]],
+  `Treatment` = quant_ratioset_funnorm_filter@colData@listData[["treatment"]]
 )
 
 ## Colour mapping
 
 anno_cols <- list(
   `Cell population` = c(
-    'hMSC-20176' = col_cell_line[1],
-    'hMSC-21558' = col_cell_line[2]
+    'hMSC' = col_cell_line[1],
+    'hNSC' = col_cell_line[2]
   ),
-  `Passage` = c('P5' = col_passage[1], 'P7' = col_passage[2], 'P13' = col_passage[3]),
-  `Day` = c('D3' = col_day[1], 'D5' = col_day[2]),
-  `Treatment` = c('Untreated' = col_treatment[1], 'Treated' = col_treatment[2])
+  `Timepoint` = c('early' = col_timepoint[1], 'late' = col_timepoint[2]),
+  `Treatment` = c('untreated' = col_treatment[1],
+                  'heparin' = col_treatment[2],
+                  'neurosphere' = col_treatment[3])
 )
 
 ## ComplexHeatmap metadata annotation object
@@ -65,24 +65,16 @@ anno_object <- HeatmapAnnotation(
       title_gp = gpar(fontsize = 12, fontface = 'bold'),
       labels_gp = gpar(fontsize = 12, fontface = 'bold')
     ),
-    `Passage` = list(
+    `Timepoint` = list(
+      nrow = 2,
+      title = 'Timepoint',
+      title_position = 'topleft',
+      legend_direction = 'vertical',
+      title_gp = gpar(fontsize = 12, fontface = 'bold'),
+      labels_gp = gpar(fontsize = 12, fontface = 'bold')
+    ),
+    `Treatment` = list(
       nrow = 3,
-      title = 'Passage',
-      title_position = 'topleft',
-      legend_direction = 'vertical',
-      title_gp = gpar(fontsize = 12, fontface = 'bold'),
-      labels_gp = gpar(fontsize = 12, fontface = 'bold')
-    ),
-    `Day` = list(
-      nrow = 2,
-      title = 'Day',
-      title_position = 'topleft',
-      legend_direction = 'vertical',
-      title_gp = gpar(fontsize = 12, fontface = 'bold'),
-      labels_gp = gpar(fontsize = 12, fontface = 'bold')
-    ),
-    `Treatment group` = list(
-      nrow = 2,
       title = 'Treatment',
       title_position = 'topleft',
       legend_direction = 'vertical',
@@ -92,52 +84,36 @@ anno_object <- HeatmapAnnotation(
   )
 )
 
-# Select genes to be labelled
+# Select probes to be labelled
 
 anno_genelabels <- rowAnnotation(
   Genes = anno_mark(
-    at = seq(1, nrow(E_heatmap), 60),
-    labels = rownames(E_heatmap)[seq(1, nrow(E_heatmap), 60)],
+    at = seq(1, nrow(m_heatmap), 60),
+    labels = rownames(m_heatmap)[seq(1, nrow(m_heatmap), 60)],
     labels_gp = gpar(fontsize = 8, fontface = 'bold'),
     padding = 0.75
   ),
   width = unit(2.0, 'cm') +
     
-    max_text_width(rownames(E_heatmap)[seq(1, nrow(E_heatmap), 60)],
+    max_text_width(rownames(m_heatmap)[seq(1, nrow(m_heatmap), 60)],
                    gp = gpar(
                      fontsize = 8,  fontface = 'bold'
                    ))
 )
 
-# Apply row clustering 
+# Cluster
 
-clusters <- pam(E_heatmap,
-                k = 5)
+clusters_probes <- bigkmeans(m_heatmap,
+              centers = 10)
 
-clusters$clustering <- paste0('Cluster ', 
-                              clusters$clustering)
-
-clusters$clustering <- factor(clusters$clustering,
-                              levels = c(
-                                'Cluster 1',
-                                'Cluster 2',
-                                'Cluster 3',
-                                'Cluster 4',
-                                'Cluster 5'
-                              ))
 
 # Create heatmap object
 
 heatmap <- Heatmap(
-  E_heatmap,
-  name = 'Gene\nZ-\nscore',
+  m_heatmap,
+  name = 'M-value\nZ-\nscore',
   col = colorRamp2(breaks, col),
   border = F,
-  
-  # Group rows based on clusters
-  
-  row_split = clusters$clustering,
-  cluster_row_slices = FALSE,
   
   # parameters for the colour-bar that represents gradient of expression
   
@@ -153,19 +129,19 @@ heatmap <- Heatmap(
   
   # row (gene) parameters
   
-  cluster_rows = T,
-  show_row_dend = T,      
-  row_title = levels(clusters$clustering),
-  row_title_side = 'left',
+  show_row_dend = T,
   row_title_gp = gpar(fontsize = 10,  fontface = 'bold'),
   row_title_rot = 90,
+  row_split = clusters_probes$cluster,
   show_row_names = F,
+  cluster_rows = FALSE,
+  cluster_row_slices = FALSE,
   
   # column (sample) parameters
   
-  cluster_column_slices = F,
-  column_split = quant_heatmap$targets$Sample_ID,
-  cluster_columns = T,
+  cluster_column_slices = T,
+  column_split = quant_ratioset_funnorm_filter@colData@listData[["cell_line"]],
+  cluster_columns = F,
   show_column_dend = T,
   show_column_names = F,
   
@@ -180,11 +156,11 @@ heatmap <- Heatmap(
 # Export heatmap of raw data
 
 png(
-  file = "./output/plots_heatmap/normalised_expression_genes_sample_ID.png",
+  file = "./output/plots_heatmap/heatmap_m_vals.png",
   width = 12,
   height = 12,
   units = "in",
-  res = 1200
+  res = 600
 )
 
 export_heatmap <- plot(
