@@ -10,5 +10,5 @@ input/*
 !input/.gitkeep
 
 # Bookdown output folders
-_book.*
-_main_cache.*
+_book/*
+_main_cache/*
