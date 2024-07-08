@@ -23,7 +23,7 @@ table_design <- quant_ratioset_funnorm_filter@colData %>%
   # mutate(cell_line = factor(cell_line, levels = c("hMSC", "hNSC"))) %>%
   mutate(timepoint = factor(timepoint, levels = c("early", "late"))) %>%
   # Uncomment below line if analysing hNSC too
-  # mutate(passage = factor(passage, levels = c("p5", "p13", "p27"))) %>%
+  # mutate(passage = factor(passage, levels = c("p6", "p27"))) %>%
   mutate(treatment = factor(treatment, levels = c("untreated", "heparin")))
 
 
