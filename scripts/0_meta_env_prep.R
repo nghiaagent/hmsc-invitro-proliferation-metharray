@@ -73,7 +73,10 @@ p_load(
   shinybusy,
   data.table,
   DT,
-  matrixStats
+  matrixStats,
+  biganalytics,
+  edgeR,
+  openxlsx
 )
 
 # Clean up package list
