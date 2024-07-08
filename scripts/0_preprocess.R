@@ -9,7 +9,8 @@ targets <- read.csv(file.path("input", "annotation", "sample_sheet_hmsc.csv"),
     slide,
     str_c(slide, array, sep = "_")
   )) %>%
-  mutate(condition_notreat = str_c(cell_line, passage))
+  mutate(condition_notreat = str_c(cell_line, passage)) %>%
+  mutate(condition_nocell = str_c(timepoint, treatment))
 
 quant_rg <- read.metharray.exp(targets = targets,
                                extended = TRUE,
@@ -111,11 +112,6 @@ keep <- !(featureNames(quant_ratioset_funnorm_filter) %in% excl_probes)
 table(keep)
 
 quant_ratioset_funnorm_filter <- quant_ratioset_funnorm_filter[keep, ]
-
-# Get beta and M values
-
-mVals <- getM(quant_ratioset_funnorm_filter)
-bVals <- getBeta(quant_ratioset_funnorm_filter)
 
 # Save data
 
