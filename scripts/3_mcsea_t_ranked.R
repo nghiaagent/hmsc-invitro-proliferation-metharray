@@ -1,5 +1,3 @@
-# Run mCSEA
-
 # Load data
 
 quant_beta_vals <- readRDS(file.path("output", "data_meth", "quant_beta_vals_hmsc.RDS"))
@@ -9,7 +7,6 @@ fit_contrasts <- readRDS(file.path("output", "data_meth", "fit_contrasts.RDS"))
 t_timepoint <- readRDS(file.path("output", "data_meth", "t_timepoint.RDS"))
 
 t_heparin <- readRDS(file.path("output", "data_meth", "t_heparin.RDS"))
-
 
 # Run mCSEATest
 
@@ -48,18 +45,18 @@ mCSEAPlot(
 # Save data
 
 saveRDS(mcsea_heparin,
-        file = file.path("output", "data_dmr", "dmr_hMSC_heparin.RDS"))
+        file = file.path("output", "data_dmr", "mcsea", "dmr_hMSC_heparin.RDS"))
 
 saveRDS(mcsea_timepoint,
-        file = file.path("output", "data_dmr", "dmr_hMSC_timepoint.RDS"))
+        file = file.path("output", "data_dmr", "mcsea", "dmr_hMSC_timepoint.RDS"))
 
 openxlsx::write.xlsx(
   list(
     promoters = mcsea_heparin[["promoters"]],
-    genes = mcsea_heparin[["promoters"]],
+    genes = mcsea_heparin[["genes"]],
     CGI = mcsea_heparin[["CGI"]]
   ),
-  file = file.path("output", "data_dmr", "dmr_hMSC_heparin.xlsx"),
+  file = file.path("output", "data_dmr", "mcsea", "dmr_hMSC_heparin.xlsx"),
   asTable = TRUE,
   rowNames = TRUE
 )
@@ -67,10 +64,10 @@ openxlsx::write.xlsx(
 openxlsx::write.xlsx(
   list(
     promoters = mcsea_timepoint[["promoters"]],
-    genes = mcsea_timepoint[["promoters"]],
+    genes = mcsea_timepoint[["genes"]],
     CGI = mcsea_timepoint[["CGI"]]
   ),
-  file = file.path("output", "data_dmr", "dmr_hMSC_timepoint.xlsx"),
+  file = file.path("output", "data_dmr", "mcsea", "dmr_hMSC_timepoint.xlsx"),
   asTable = TRUE,
   rowNames = TRUE,
 )
