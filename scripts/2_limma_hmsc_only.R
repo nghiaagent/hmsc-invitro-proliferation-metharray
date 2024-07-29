@@ -25,19 +25,17 @@ table_design <- quant_ratioset_funnorm_filter@colData %>%
   # mutate(passage = factor(passage, levels = c("p5", "p13"))) %>%
   mutate(treatment = factor(treatment, levels = c("untreated", "heparin")))
 
-# Create limma EList object containing beta values
+# Create limma EList object containing M values
 
-quant_beta_vals <- new("EList")
-quant_beta_vals$E <- getM(quant_ratioset_funnorm_filter)
-quant_beta_vals$targets <- table_design
-quant_beta_vals$genes <- quant_ratioset_funnorm_filter@rowRanges
+quant_m_vals <- new("EList")
+quant_m_vals$E <- getM(quant_ratioset_funnorm_filter)
+quant_m_vals$targets <- table_design
+quant_m_vals$genes <- quant_ratioset_funnorm_filter@rowRanges
 
 # Define design matrix for limma
 ## Treat time points and treatments (UT vs. Hep) as fixed effects
 
 design <- model.matrix( ~ timepoint + treatment, data = table_design)
-
-colnames(design) %<>% make.names(.)
 
 # Define contrasts
 
@@ -47,29 +45,33 @@ matrix_contrasts <- makeContrasts(P13vsP5 = timepointlate - 0,
 
 # Apply limma model fit
 
-fit_contrasts <- lmFit(quant_beta_vals, design) %>%
-  eBayes() %>%
+fit <- lmFit(quant_m_vals, design) %>%
+  eBayes()
+
+fit_contrasts <- fit %>%
   contrasts.fit(contrasts = matrix_contrasts) %>%
   eBayes()
 
 # Get t-statistics for mCSEA downstream
 
-t_timepoint <- topTable(fit_contrasts,
-                        coef = 1,
-                        number = Inf,
-                        sort = "none")$t
-names(t_timepoint) <- rownames(topTable(
+t_stat_timepoint <- topTable(fit_contrasts,
+                             coef = 1,
+                             number = Inf,
+                             sort = "none")$t
+
+names(t_stat_timepoint) <- rownames(topTable(
   fit_contrasts,
   coef = 1,
   number = Inf,
   sort = "none"
 ))
 
-t_heparin <- topTable(fit_contrasts,
-                      coef = 2,
-                      number = Inf,
-                      sort = "none")$t
-names(t_heparin) <- rownames(topTable(
+t_stat_heparin <- topTable(fit_contrasts,
+                           coef = 2,
+                           number = Inf,
+                           sort = "none")$t
+
+names(t_stat_heparin) <- rownames(topTable(
   fit_contrasts,
   coef = 2,
   number = Inf,
@@ -78,14 +80,14 @@ names(t_heparin) <- rownames(topTable(
 
 # Save data
 
-saveRDS(quant_beta_vals,
-        file.path("output", "data_meth", "quant_beta_vals_hmsc.RDS"))
+saveRDS(quant_m_vals,
+        file.path("output", "data_meth", "limma", "quant_m_vals_hmsc.RDS"))
 
 saveRDS(fit_contrasts,
-        file.path("output", "data_meth", "fit_contrasts.RDS"))
+        file.path("output", "data_meth", "limma", "fit_contrasts.RDS"))
 
-saveRDS(t_timepoint,
-        file.path("output", "data_meth", "t_timepoint.RDS"))
+saveRDS(t_stat_timepoint,
+        file.path("output", "data_meth", "limma", "t_stat_timepoint.RDS"))
 
-saveRDS(t_heparin, 
-        file.path("output", "data_meth", "t_heparin.RDS"))
+saveRDS(t_stat_heparin,
+        file.path("output", "data_meth", "limma", "t_stat_heparin.RDS"))
