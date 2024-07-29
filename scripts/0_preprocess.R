@@ -1,7 +1,7 @@
 # Load samples
 
 targets <- read.csv(file.path("input", "annotation", "sample_sheet_hmsc.csv"),
-                    stringsAsFactors = FALSE,) %>%
+                    stringsAsFactors = FALSE) %>%
   mutate(Basename = file.path(
     getwd(),
     "input",
@@ -62,15 +62,14 @@ excl_probes <- c(
   as.character(epic.variants3$PROBE)
 ) %>% unique()
 
-# EXCLUDING BAD SAMPLES by detection p-val
-## Calculate mean detection p value in each sample
+# EXCLUDE BAD SAMPLES by detection p-val
+## Calculate mean detection p-val in each sample
 ## Remove samples with mean detection p-val > 0.01
 
 keep <- colMeans(detectionP(quant_rg)) < 0.01
 quant_rg <- quant_rg[, keep]
 
 # NORMALISATION
-#### mSetRaw is genuinely there just for plotting
 #### Quantile if not so different tissue types, Funnorm if very different tissue types.
 #### Sometimes quantile doesnt work for plotting (NA probes in some cases) so redo with Funnorm
 
