@@ -1,0 +1,317 @@
+---
+bibliography: references.bib
+---
+
+# Methods comparison
+
+```{r include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+
+# Load data
+source("./scripts/0_meta_env_prep.R")
+
+# Load DMRcate results
+quant_ratioset_funnorm_filter <- readRDS(file = file.path("output", "quant_ratioset_funnorm_filter.RDS")) %>%
+  .[, .@colData$cell_line == "hMSC"] %>%
+  .[, .@colData$treatment != "neurosphere"]
+
+quant_m_vals <- readRDS(file.path("output", "data_meth", "dmrcate", "quant_m_vals_hmsc.RDS"))
+
+t_stat_timepoint <- readRDS(file.path("output", "data_meth", "dmrcate", "t_stat_timepoint.RDS"))
+
+t_stat_heparin <- readRDS(file.path("output", "data_meth", "dmrcate", "t_stat_heparin.RDS"))
+
+dmr_timepoint <- readRDS(file.path("output", "data_meth", "dmrcate", "dmr_timepoint.RDS"))
+
+ranges_dmr_timepoint <- readRDS(file.path("output", "data_meth", "dmrcate", "ranges_dmr_timepoint.RDS"))
+
+# Load limma + mCSEA results
+
+fit_contrasts <- readRDS(
+        file.path("output", "data_meth", "limma", "fit_contrasts.RDS"))
+
+mcsea_timepoint_t_stat <- readRDS(
+        file = file.path("output", "data_dmr", "mcsea", "dmr_hMSC_timepoint.RDS"))
+
+mcsea_heparin_t_stat <- readRDS(
+        file = file.path("output", "data_dmr", "mcsea", "dmr_hMSC_heparin.RDS"))
+
+# Load direct ordering results
+
+mcsea_timepoint_direct <- readRDS(
+        file = file.path("output", "data_dmr", "mcsea_deltabeta", "dmr_hMSC_timepoint.RDS"))
+
+mcsea_heparin_direct <- readRDS(
+        file = file.path("output", "data_dmr", "mcsea_deltabeta", "dmr_hMSC_heparin.RDS"))
+
+# Correlation between methods
+
+df_cor_nes <- readRDS(file = file.path("output", "data_dmr", "df_cor_nes.RDS"))
+
+```
+
+## Intro
+
+3 methods were tested to compare DNA methylation changes between P+5 and P+13:
+
+1.  Calculation of CpG methylation test statistics with `limma` [@ritchie2015] by considering untreated and treated cells as one group, followed by DMR detection with DMRcate.
+    -   Grouping untreated and treated cells gives us n = 2 and allows calculation of CpG-level test statistics and p-values.
+    -   This method assumes that the effect of Heparin treatment does not change between passages.
+        -   e.g. If Heparin increases methylation by 10% at a probe at P+5, then it still increases methylation by 10% at P+13.
+        -   This assumption does not hold with hNSCs but might be more plausible with hMSCs (based on MDS clustering results).
+2.  Calculation of CpG methylation test statistics with `limma` [@ritchie2015] by considering untreated and treated cells as one group, followed by permutation-based DMR detection with `mCSEA` [@martorell-marugán2019] .
+    -   Grouping untreated and treated cells gives us n = 2 and allows calculation of CpG-level test statistics and p-values.
+    -   This method assumes that the effect of Heparin treatment does not change between passages.
+        -   e.g. If Heparin increases methylation by 10% at a probe at P+5, then it still increases methylation by 10% at P+13.
+        -   This assumption does not hold with hNSCs but might be more plausible with hMSCs (based on MDS clustering results).
+    -   This method applies a potentially flawed permutation-based test for DMR detection with `mCSEA`.
+        -   Under the hood, `mCSEA` applies the `fgsea` algorithm [@korotkevich].
+        -   `fgsea` may be flawed - it assumes that all elements in the tested list are independent of each other.
+            -   In the context of gene set enrichment analysis (gsea), it assumes that expression of all genes being tested are independent of each other.
+            -   In the context of DMR identification (here), it assumes that methylation of all probes being tested are independent of each other.
+            -   These assumptions may not be biologically plausible.
+        -   However, the original mCSEA publication demonstrated high PPV (near 100% at $\Delta\beta\geq 0.2$ , 91.29% at $\Delta \beta = 0.05$, Supplementary Table 2) in spite of theoretical flaws.
+3.  Ranking of DNA methylation probe by decreasing \$\Delta \beta\$, or by decreasing levels of hypermethylation between passages, followed by permutation-based DMR detection with `mCSEA` [@martorell-marugán2019]
+    -   This method follows "Option B" outlined in the `mCSEA` publication.
+    -   This method does not derive CpG methylation test statistics (impossible with n = 1).
+        -   For `mCSEA/fgsea`, this doesn't matter - the permutation-based tests only use the rank of CpG sites in the list, not the actual test statistic.
+    -   This method applies a potentially flawed permutation-based test for DMR detection with `mCSEA`, discussed in detail above.
+
+## Method 1: DMRcate
+
+### CpG level results:
+
+Between passages: 143056 differentially methylated CpG sites (FDR \< 0.05)
+
+```{r}
+
+t_stat_timepoint
+
+t_stat_timepoint@ranges
+```
+
+Between treatment (heparin vs untreated): 0 differentially methylated CpG sites (FDR \< 0.05)
+
+```{r}
+
+t_stat_heparin
+
+t_stat_heparin@ranges
+```
+
+### DMR results
+
+25436 DMRs were detected, with most DMRs associated with hypomethylation.
+
+```{r}
+
+ranges_dmr_timepoint
+
+ranges_dmr_timepoint@elementMetadata$meandiff %>% range()
+
+ranges_dmr_timepoint@elementMetadata$maxdiff %>% range()
+```
+
+```{r}
+
+datatable(as_tibble(ranges_dmr_timepoint),
+          options = list(
+            scrollX = TRUE
+          )) %>%
+  formatRound(7:12, 4)
+```
+
+## Method 2:  limma + mCSEA
+
+### CpG level results
+
+```{r}
+
+summary(decideTests(fit_contrasts))
+```
+
+Between passages: 143056 differentially methylated CpG sites (FDR \< 0.05)
+
+Between treatment (heparin vs untreated): 0 differentially methylated CpG sites (FDR \< 0.05)
+
+(Same results as DMRcate due to same method being used)
+
+### DMR results (gene promoters only)
+
+#### Between passages
+
+```{r}
+
+table(mcsea_timepoint_t_stat[["promoters"]]$padj < 0.05)
+```
+534 DMRs
+
+##### All regions results
+
+```{r}
+
+datatable(mcsea_timepoint_t_stat[["promoters"]] %>%
+            drop_na() %>%
+            select(!1),
+          options = list(scrollX = TRUE)) %>%
+  formatRound(1:4, 4)
+
+```
+
+##### DMRs only
+
+
+```{r}
+
+datatable(mcsea_timepoint_t_stat[["promoters"]] %>%
+            filter(padj < 0.05) %>%
+            drop_na() %>%
+            select(!1),
+          options = list(scrollX = TRUE)) %>%
+  formatRound(1:4, 4)
+
+```
+
+
+#### Between heparin and untreated
+
+```{r}
+
+table(mcsea_heparin_t_stat[["promoters"]]$padj < 0.05)
+```
+
+7 DMRs
+
+##### All regions results
+
+```{r}
+
+datatable(mcsea_heparin_t_stat[["promoters"]] %>%
+            drop_na() %>%
+            select(!1),
+          options = list(scrollX = TRUE)) %>%
+  formatRound(1:4, 4)
+
+```
+
+##### DMRs only
+
+
+```{r}
+
+datatable(mcsea_heparin_t_stat[["promoters"]] %>%
+            filter(padj < 0.05) %>%
+            drop_na() %>%
+            select(!1),
+          options = list(scrollX = TRUE)) %>%
+  formatRound(1:4, 4)
+
+```
+
+## Method 3: Direct ordering of ∆β + mCSEA
+
+### DMR results (gene promoters only)
+#### Between passages
+
+```{r}
+
+table(mcsea_timepoint_direct[["promoters"]]$padj < 0.05)
+```
+
+304 DMRs
+
+##### All regions results
+
+```{r}
+
+datatable(mcsea_timepoint_direct[["promoters"]] %>%
+            drop_na() %>%
+            select(!1),
+          options = list(scrollX = TRUE)) %>%
+  formatRound(1:4, 4)
+
+```
+
+##### DMRs only
+
+```{r}
+
+datatable(mcsea_timepoint_direct[["promoters"]] %>%
+            filter(padj < 0.05) %>%
+            drop_na() %>%
+            select(!1),
+          options = list(scrollX = TRUE)) %>%
+  formatRound(1:4, 4)
+
+```
+
+#### Between heparin and untreated
+
+```{r}
+
+table(mcsea_heparin_direct[["promoters"]]$padj < 0.05)
+```
+
+0 DMRs
+
+##### All regions results
+
+```{r}
+
+datatable(mcsea_heparin_direct[["promoters"]] %>%
+            drop_na() %>%
+            select(!1),
+          options = list(scrollX = TRUE)) %>%
+  formatRound(1:4, 4)
+
+```
+
+## Correlation between methods 2 and 3
+
+Method 1 (`DMRcate`) can't be directly compared with the remaining methods (`mCSEA`). `DMRcate` locates DMRs first, then annotates the identified regions against a reference genome. `mCSEA` tests on pre-defined genomic regions.
+
+Methods 2 (`tstat`) and 3 (`beta`) derive a normalised enrichment score (NES) that represents whether probes in a region are mostly hypermethylated, or hypomethylated. There is weak correlation (p \< 0.05, r = 0.66) between the methods.
+
+### Correlation of NES scores
+
+```{r}
+
+ggplot(df_cor_nes, aes(x = NEStstat, y = NESdeltabeta)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  annotate(
+    "text",
+    x = 2,
+    y = 4,
+    label = paste0("r = ", round(
+      cor(df_cor_nes$NEStstat, df_cor_nes$NESdeltabeta), 2
+    )),
+    hjust = 0
+  ) +
+  annotate(
+    "text",
+    x = 2,
+    y = 3.75,
+    label = paste0("p = ", round(
+      cor.test(df_cor_nes$NEStstat, df_cor_nes$NESdeltabeta)$p.value,
+      3
+    )),
+    hjust = 0
+  ) +
+  theme_classic()
+
+```
+
+### Venn diagram
+
+Out of all DMRs detected by both methods, only 119 DMRs are shared.
+
+```{r}
+
+ggVennDiagram(list(
+  tstat = df_cor_nes[df_cor_nes$padjtstat < 0.05, ]$gene,
+  beta =  df_cor_nes[df_cor_nes$padjdeltabeta < 0.05, ]$gene
+))
+
+```
