@@ -33,7 +33,9 @@ list_Bioc_Pkg <- c(
   "DMRcate",
   "IlluminaHumanMethylationEPICmanifest",
   "BiocParallel",
-  "shinyMethyl"
+  "shinyMethyl",
+  "edgeR",
+  "clusterProfiler"
 )
 
 # Install Bioconductor packages, if they are not yet installed
@@ -75,8 +77,10 @@ p_load(
   DT,
   matrixStats,
   biganalytics,
-  edgeR,
-  openxlsx
+  openxlsx,
+  magrittr,
+  ggVennDiagram,
+  vctrs
 )
 
 # Clean up package list
