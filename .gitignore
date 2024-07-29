@@ -12,3 +12,8 @@ input/*
 # Bookdown output folders
 _book/*
 _main_cache/*
+
+# File types
+
+*.pdf
+*.png
