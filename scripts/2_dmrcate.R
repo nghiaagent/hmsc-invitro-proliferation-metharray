@@ -25,17 +25,17 @@ table_design <- quant_ratioset_funnorm_filter@colData %>%
   # mutate(passage = factor(passage, levels = c("p5", "p13"))) %>%
   mutate(treatment = factor(treatment, levels = c("untreated", "heparin")))
 
-# Create limma EList object containing beta values
+# Create limma EList object containing M values
 
-quant_beta_vals <- new("EList")
-quant_beta_vals$E <- getM(quant_ratioset_funnorm_filter)
-quant_beta_vals$targets <- table_design
-quant_beta_vals$genes <- quant_ratioset_funnorm_filter@rowRanges
+quant_m_vals <- new("EList")
+quant_m_vals$E <- getM(quant_ratioset_funnorm_filter)
+quant_m_vals$targets <- table_design
+quant_m_vals$genes <- quant_ratioset_funnorm_filter@rowRanges
 
 # Define design matrix for limma
 ## Treat time points and treatments (UT vs. Hep) as fixed effects
 
-design <- model.matrix(~ timepoint + treatment, data = table_design)
+design <- model.matrix( ~ timepoint + treatment, data = table_design)
 
 # Define contrasts
 
@@ -47,14 +47,47 @@ rownames(matrix_contrasts)[1] <- colnames(design)[1]
 
 # Run DMRcate to calculate per gene t-statistic
 
-t_stat_timepoint <- cpg.annotate(datatype = "array",
-                                 quant_beta_vals$E,
-                                 what = "Beta",
-                                 arraytype = "EPICv1",
-                                 analysis.type = "differential",
-                                 design = design,
-                                 constrasts = TRUE,
-                                 cont.matrix = matrix_contrasts,
-                                 coef = 1
-                                 )
+t_stat_timepoint <- cpg.annotate(
+  datatype = "array",
+  quant_m_vals$E,
+  what = "M",
+  arraytype = "EPICv1",
+  analysis.type = "differential",
+  design = design,
+  constrasts = TRUE,
+  cont.matrix = matrix_contrasts,
+  coef = 2
+)
 
+t_stat_heparin <- cpg.annotate(
+  datatype = "array",
+  quant_m_vals$E,
+  what = "M",
+  arraytype = "EPICv1",
+  analysis.type = "differential",
+  design = design,
+  constrasts = TRUE,
+  cont.matrix = matrix_contrasts,
+  coef = 3
+)
+
+dmr_timepoint <- dmrcate(t_stat_timepoint)
+
+ranges_dmr_timepoint <- extractRanges(dmr_timepoint, genome = "hg19")
+
+# Save data
+
+saveRDS(quant_m_vals,
+        file.path("output", "data_meth", "dmrcate", "quant_m_vals_hmsc.RDS"))
+
+saveRDS(t_stat_timepoint,
+        file.path("output", "data_meth", "dmrcate", "t_stat_timepoint.RDS"))
+
+saveRDS(t_stat_heparin, 
+        file.path("output", "data_meth", "dmrcate", "t_stat_heparin.RDS"))
+
+saveRDS(dmr_timepoint,
+        file.path("output", "data_meth", "dmrcate", "dmr_timepoint.RDS"))
+
+saveRDS(ranges_dmr_timepoint,
+        file.path("output", "data_meth", "dmrcate", "ranges_dmr_timepoint.RDS"))
