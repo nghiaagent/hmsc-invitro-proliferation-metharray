@@ -9,8 +9,16 @@ targets <- read.csv(file.path("input", "annotation", "sample_sheet_hmsc.csv"),
     slide,
     str_c(slide, array, sep = "_")
   )) %>%
-  mutate(condition_notreat = str_c(cell_line, passage)) %>%
-  mutate(condition_nocell = str_c(timepoint, treatment))
+  # Order factors
+  mutate(cell_line = factor(cell_line, levels = c("hMSC", "hNSC"))) %>%
+  mutate(timepoint = factor(timepoint, levels = c("early", "late"))) %>%
+  mutate(treatment = factor(treatment, levels = c("untreated", "heparin", "neurosphere"))) %>%
+  arrange(cell_line, timepoint, treatment) %>%
+  
+  # Order combined factors
+  mutate(condition_notreat = str_c(cell_line, passage) %>% factor() %>% fct_inorder) %>%
+  mutate(condition_nocell = str_c(timepoint, treatment) %>% factor() %>% fct_inorder) %>%
+  mutate(sample_name = factor(sample_name) %>% fct_inorder())
 
 quant_rg <- read.metharray.exp(targets = targets,
                                extended = TRUE,
