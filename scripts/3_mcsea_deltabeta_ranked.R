@@ -28,7 +28,6 @@ beta_late_untreated  <- quant_ratioset_funnorm_filter[, "200654430047_R03C01"] %
 deltabeta_timepoint <- beta_late_untreated - beta_early_untreated
 deltabeta_treatment <- beta_early_treated - beta_early_untreated
 
-
 # Run mCSEATest
 
 mcsea_timepoint <- mCSEATest(
