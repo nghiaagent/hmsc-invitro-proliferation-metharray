@@ -122,7 +122,7 @@ datatable(as_tibble(ranges_dmr_timepoint),
   formatRound(7:12, 4)
 ```
 
-## Method 2:  limma + mCSEA
+## Method 2: limma + mCSEA
 
 ### CpG level results
 
@@ -145,6 +145,7 @@ Between treatment (heparin vs untreated): 0 differentially methylated CpG sites 
 
 table(mcsea_timepoint_t_stat[["promoters"]]$padj < 0.05)
 ```
+
 534 DMRs
 
 ##### All regions results
@@ -161,7 +162,6 @@ datatable(mcsea_timepoint_t_stat[["promoters"]] %>%
 
 ##### DMRs only
 
-
 ```{r}
 
 datatable(mcsea_timepoint_t_stat[["promoters"]] %>%
@@ -172,7 +172,6 @@ datatable(mcsea_timepoint_t_stat[["promoters"]] %>%
   formatRound(1:4, 4)
 
 ```
-
 
 #### Between heparin and untreated
 
@@ -197,7 +196,6 @@ datatable(mcsea_heparin_t_stat[["promoters"]] %>%
 
 ##### DMRs only
 
-
 ```{r}
 
 datatable(mcsea_heparin_t_stat[["promoters"]] %>%
@@ -212,6 +210,7 @@ datatable(mcsea_heparin_t_stat[["promoters"]] %>%
 ## Method 3: Direct ordering of ∆β + mCSEA
 
 ### DMR results (gene promoters only)
+
 #### Between passages
 
 ```{r}
