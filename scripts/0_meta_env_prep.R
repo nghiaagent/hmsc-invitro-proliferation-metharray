@@ -80,7 +80,9 @@ p_load(
   openxlsx,
   magrittr,
   ggVennDiagram,
-  vctrs
+  vctrs,
+  furrr,
+  here
 )
 
 # Clean up package list
@@ -93,8 +95,12 @@ BiocParallel::register(SnowParam(workers = 8),
                        default = TRUE)
 bpparam()
 
+# Set up multicore processing with furrr::map
+
+future::plan(strategy = multisession, workers = 8)
+
 # TO ADD: Create folders needed for outputting files
 
 # Add color palettes
 
-pal2 <- brewer.pal(10, "Paired")
+pal2 <- palette.colors(n = 10, palette = "Polychrome 36")
