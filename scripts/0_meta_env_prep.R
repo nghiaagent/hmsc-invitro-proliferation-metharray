@@ -35,7 +35,8 @@ list_Bioc_Pkg <- c(
   "BiocParallel",
   "shinyMethyl",
   "edgeR",
-  "clusterProfiler"
+  "clusterProfiler",
+  "PCAtools"
 )
 
 # Install Bioconductor packages, if they are not yet installed
@@ -82,7 +83,9 @@ p_load(
   ggVennDiagram,
   vctrs,
   furrr,
-  here
+  here,
+  patchwork,
+  fastcluster
 )
 
 # Clean up package list
