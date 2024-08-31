@@ -1,97 +1,82 @@
 # Load data
 
-quant_ratioset_funnorm_filter <- readRDS(file = file.path("output", "quant_ratioset_funnorm_filter.RDS"))
-quant_m_vals <- readRDS(file = file.path("output", "data_meth", "limma", "quant_m_vals_hmsc.RDS"))
-beta_sel <- quant_ratioset_funnorm_filter[, c("200654430047_R01C01",
-                                               "200654430047_R02C01",
-                                               "200654430047_R03C01",
-                                               "200654430047_R04C01")] %>%
-  getBeta()
+quant_ratioset_funnorm_filter <- readRDS(file = file.path("output", "quant_ratioset_funnorm_filter.RDS")) %>%
+  .[, .@colData$cell_line == "hMSC"] %>%
+  .[, .@colData$treatment != "neurosphere"]
 
-# Extract beta values
-# Calculate differences in beta values between P5 UT and P13 UT
-# hMSC early UT: 200654430047_R01C01
-# hMSC late UT: 200654430047_R03C01
+# Make design matrix
 
-beta_early_untreated <- quant_ratioset_funnorm_filter[, "200654430047_R01C01"] %>%
-  getBeta() %>%
-  .[, 1]
+table_design <- quant_ratioset_funnorm_filter@colData %>%
+  as.data.frame() %>%
+  mutate(sample_name = factor(
+    sample_name,
+    levels = c(
+      "hMSC_p5_untreated",
+      "hMSC_p5_heparin",
+      "hMSC_p13_untreated",
+      "hMSC_p13_heparin"
+    )
+  )) %>%
+  mutate(slide = factor(slide)) %>%
+  mutate(timepoint = factor(timepoint, levels = c("early", "late"))) %>%
+  mutate(treatment = factor(treatment, levels = c("untreated", "heparin")))
 
-beta_early_treated   <- quant_ratioset_funnorm_filter[, "200654430047_R02C01"] %>%
-  getBeta() %>%
-  .[, 1]
+# Create limma EList object containing beta values
 
-beta_late_untreated  <- quant_ratioset_funnorm_filter[, "200654430047_R03C01"] %>%
-  getBeta() %>%
-  .[, 1]
+quant_beta_vals <- new("EList")
+quant_beta_vals$E <- getBeta(quant_ratioset_funnorm_filter)
+quant_beta_vals$targets <- table_design
+quant_beta_vals$genes <- quant_ratioset_funnorm_filter@rowRanges
 
-deltabeta_timepoint <- beta_late_untreated - beta_early_untreated
-deltabeta_treatment <- beta_early_treated - beta_early_untreated
+# Extract beta values and relevant ranks
+
+beta <- map(list(early_untreated = "200654430047_R01C01",
+                 early_treated = "200654430047_R02C01",
+                 late_untreated = "200654430047_R03C01"),
+            \ (x) quant_beta_vals$E[, x])
+
+deltabeta <-
+  list(timepoint = beta[["late_untreated"]] - beta[["early_untreated"]],
+       treatment = beta[["early_treated"]]  - beta[["early_untreated"]])
 
 # Run mCSEATest
 
-mcsea_timepoint <- mCSEATest(
-  rank = deltabeta_timepoint,
-  methData = beta_sel,
-  pheno = quant_m_vals$targets,
-  minCpGs = 5,
-  nproc = 16,
-  platform = "EPIC"
-)
-
-mcsea_heparin <- mCSEATest(
-  rank = deltabeta_treatment,
-  methData = beta_sel,
-  pheno = quant_m_vals$targets,
-  minCpGs = 5,
-  nproc = 16,
-  platform = "EPIC"
+results_mcsea <- map(
+  deltabeta,
+  \ (x) mCSEATest(
+    rank = x,
+    methData = quant_beta_vals$E,
+    pheno = quant_beta_vals$targets,
+    minCpGs = 5,
+    nproc = 16,
+    platform = "EPIC"
+  )
 )
 
 # Save data
 
-saveRDS(mcsea_heparin,
+## RDS
+
+saveRDS(results_mcsea,
         file = file.path("output",
                          "data_dmr",
-                         "mcsea_deltabeta",
-                         "dmr_hMSC_heparin.RDS"))
+                         "results_mcsea.RDS"))
 
-saveRDS(
-  mcsea_timepoint,
-  file = file.path(
-    "output",
-    "data_dmr",
-    "mcsea_deltabeta",
-    "dmr_hMSC_timepoint.RDS"
-  )
-)
+## Save xlsx
 
-openxlsx::write.xlsx(
-  list(
-    promoters = mcsea_heparin[["promoters"]],
-    genes = mcsea_heparin[["genes"]],
-    CGI = mcsea_heparin[["CGI"]]
-  ),
-  file = file.path("output",
-                   "data_dmr",
-                   "mcsea_deltabeta",
-                   "dmr_hMSC_heparin.xlsx"),
-  asTable = TRUE,
-  rowNames = TRUE
-)
-
-openxlsx::write.xlsx(
-  list(
-    promoters = mcsea_timepoint[["promoters"]],
-    genes = mcsea_timepoint[["genes"]],
-    CGI = mcsea_timepoint[["CGI"]]
-  ),
-  file = file.path(
-    "output",
-    "data_dmr",
-    "mcsea_deltabeta",
-    "dmr_hMSC_timepoint.xlsx"
-  ),
-  asTable = TRUE,
-  rowNames = TRUE,
-)
+map2(.x = results_mcsea,
+     .y = names(results_mcsea),
+     .f = \ (x, y) {
+       openxlsx::write.xlsx(
+         list(
+           promoters = x[["promoters"]],
+           genes = x[["genes"]],
+           CGI = x[["CGI"]]
+         ),
+         file = file.path("output",
+                          "data_dmr",
+                          str_c("restults_mcsea_", y, ".xlsx")),
+         asTable = TRUE,
+         rowNames = TRUE
+       )
+     })
