@@ -97,11 +97,11 @@ legend("bottom",
 dev.off()
 
 # Construct EDA plots
-# Top row: Heatmap
-# Middle row: PC1-2; full dataset then hMSC only
+# Top row: All samples Heatmap + PCA
+# Middle row: MSC Heatmap + PCA
 # Bottom row: Legend
 
-## Construct Heatmap
+## Construct Heatmap all samples
 
 ### Define params
 #### Palette, number of steps
@@ -154,7 +154,7 @@ anno_object <-
 
 ### Plot
 
-heatmap <- Heatmap(
+heatmap_all <- Heatmap(
   beta_heatmap_sel,
   col = colorRamp2(breaks, col),
   border = F,
@@ -163,7 +163,7 @@ heatmap <- Heatmap(
   
   heatmap_legend_param = list(
     color_bar = 'continuous',
-    legend_direction = 'vertical',
+    legend_direction = 'horizontal',
     legend_width = unit(8, 'cm'),
     legend_height = unit(5.0, 'cm'),
     title = "Beta",
@@ -193,9 +193,93 @@ heatmap <- Heatmap(
 
 ### Export plot
 
-png(file = "output/plots_QC/heatmap.png", width = 10, height = 4, units = "in", res = 300)
+png(file = "output/plots_QC/heatmap_all.png", width = 8, height = 4, units = "in", res = 300)
 
-draw(heatmap)
+draw(heatmap_all,
+     heatmap_legend_side = "top")
+
+dev.off()
+
+## Construct Heatmap MSC only
+
+### Extract data, transpose so layout is probes by column and samples by row
+### Get top variable genes
+
+beta_heatmap <- getBeta(quant_ratioset_funnorm_filter[, sel])
+beta_vars <- rowVars(beta_heatmap)
+beta_heatmap_sel <-
+  beta_heatmap[beta_vars >= quantile(beta_vars, ntop),] %>%
+  t()
+
+### Cluster by fastcluster
+
+clusters_row <- fastcluster::hclust(dist(beta_heatmap_sel))
+clusters_col <- fastcluster::hclust(dist(t(beta_heatmap_sel)))
+
+### Get shape mapping for sample
+
+list_shape <-
+  colData(quant_ratioset_funnorm_filter[, sel])[["condition_notreat"]] %>%
+  case_match("hMSCp5" ~ 16L,
+             "hMSCp13" ~ 17L,
+             "hNSCp6" ~ 15L,
+             "hNSCp27" ~ 3L)
+
+### Build annotation; include only necessary metadata
+
+anno_object <-
+  HeatmapAnnotation(
+    `Cell type + Passage` = anno_simple(rep(1, times = 6),
+                                        pch = list_shape,
+                                        col = c("1" = pal2[2])),
+    `Treatment` = colData(quant_ratioset_funnorm_filter[, sel])[["treatment"]],
+    col = list(
+      "Treatment" = c(
+        'untreated'   = pal2[1],
+        'heparin'     = pal2[3],
+        'neurosphere' = pal2[6]
+      )
+    ),
+    which = "row",
+    show_legend = c(FALSE, FALSE),
+    show_annotation_name = FALSE
+  )
+
+### Plot
+
+heatmap_msc <- Heatmap(
+  beta_heatmap_sel,
+  col = colorRamp2(breaks, col),
+  border = F,
+  
+  # parameters for the colour-bar that represents gradient of expression
+  
+  show_heatmap_legend = FALSE,
+  
+  # row (gene) parameters
+  
+  show_row_dend = FALSE,
+  show_row_names = FALSE,
+  cluster_rows = FALSE,
+  row_order = clusters_row$order,
+  
+  # column (sample) parameters
+  
+  show_column_dend = FALSE,
+  show_column_names = FALSE,
+  cluster_columns = FALSE,
+  column_order = clusters_col$order,
+  
+  # specify top and bottom annotations
+  
+  left_annotation = anno_object
+)
+
+### Export plot
+
+png(file = "output/plots_QC/heatmap_hmsc.png", width = 8, height = 4, units = "in", res = 300)
+
+draw(heatmap_msc)
 
 dev.off()
 
@@ -222,28 +306,47 @@ biplots <- map(
         "heparin" = pal2[3],
         "neurosphere" = pal2[6]
       ),
-      legendPosition = 'bottom'
+      legendPosition = 'bottom',
+      labSize = 1,
+      axisLabSize =  8
    )
   )
 
 plots <-
   wrap_plots(
-    fig("output/plots_QC/heatmap.png",
-        link_dim = TRUE,
-        b_margin = ggplot2::margin(0, 0, 0, 0)
-),
-    biplots[[1]] + theme(legend.position = "none"),
-    biplots[[2]] + theme(legend.position = "none"),
+    fig(
+      "output/plots_QC/heatmap_all.png",
+      link_dim = TRUE,
+      b_margin = ggplot2::margin(0, 0, 0, 0)
+    ),
+    biplots[[1]] + theme(legend.position = "none",
+                         plot.margin = margin(t = 1,
+                                              r = 1,
+                                              b = 1,
+                                              l = 1)),
+    fig(
+      "output/plots_QC/heatmap_hmsc.png",
+      link_dim = TRUE,
+      b_margin = ggplot2::margin(0, 0, 0, 0)
+    ),
+    biplots[[2]] + theme(legend.position = "none",
+                         plot.margin = margin(t = 1,
+                                              r = 1,
+                                              b = 1,
+                                              l = 1)),
     ggpubr::get_legend(biplots[[1]]),
-    design = c(area(1, 1, 7, 4),
-               area(8, 1, 12, 2),
-               area(8, 3, 12, 4),
-               area(13, 1, 13, 4))
+    design = c(
+      area(1, 1, 6, 4),
+      area(1, 5, 6, 6),
+      area(7, 1, 12, 4),
+      area(7, 5, 12, 6),
+      area(13, 1, 13, 6)
+    )
   )
 
 ggsave(filename = "output/plots_QC/EDA_combined.png",
        plot = plots,
        width = 12,
-       height = 12,
+       height = 10,
        units = "in",
        dpi = 300)
