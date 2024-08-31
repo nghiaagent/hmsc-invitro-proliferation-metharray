@@ -85,7 +85,8 @@ p_load(
   furrr,
   here,
   patchwork,
-  fastcluster
+  fastcluster,
+  gprofiler2
 )
 
 # Clean up package list
