@@ -1,59 +1,25 @@
-# Run relevant scripts beforehand
-# 3_mcsea_deltabeta_ranked
-# dge_extract_venn_genes
 
-# List of gene sets to be used for GSEA
-# GO (CC, BP, MF)
-# KEGG
-# ReactomePA
-# MSigDB h, c2, c3
 
 # Obtain gene sets
 
-## GO
+list_msigdb <- list(
+  GOBP = "c5.go.bp.v2023.2.Hs.entrez.gmt",
+  GOMF = "c5.go.mf.v2023.2.Hs.entrez.gmt",
+  GOCC = "c5.go.cc.v2023.2.Hs.entrez.gmt",
+  h = "h.all.v2023.2.Hs.entrez.gmt",
+  c2 = "c2.cgp.v2023.2.Hs.entrez.gmt",
+  c3 = "c3.all.v2023.2.Hs.entrez.gmt",
+  reactome = "c2.cp.reactome.v2023.2.Hs.entrez.gmt",
+  KEGG = "c2.cp.kegg_legacy.v2023.2.Hs.entrez.gmt"
+)
 
-### GOBP
-### Represented by MSigDB c5/GO/BP
-
-msigdb_GOBP <-
-  read.gmt("./input/genesets/msigdb_v2023.2.Hs_GMTs/c5.go.bp.v2023.2.Hs.entrez.gmt")
-
-### GOMF
-### Represented by MSigDB c5/GO/MF
-
-msigdb_GOMF <-
-  read.gmt("./input/genesets/msigdb_v2023.2.Hs_GMTs/c5.go.mf.v2023.2.Hs.entrez.gmt")
-
-### GOCC
-### Represented by MSigDB c5/GO/CC
-
-msigdb_GOCC <-
-  read.gmt("./input/genesets/msigdb_v2023.2.Hs_GMTs/c5.go.cc.v2023.2.Hs.entrez.gmt")
-
-## MSigDB
-
-msigdb_h  <-
-  read.gmt("./input/genesets/msigdb_v2023.2.Hs_GMTs/h.all.v2023.2.Hs.entrez.gmt")
-
-msigdb_c2 <-
-  read.gmt("./input/genesets/msigdb_v2023.2.Hs_GMTs/c2.cgp.v2023.2.Hs.entrez.gmt")
-
-msigdb_c3 <-
-  read.gmt("./input/genesets/msigdb_v2023.2.Hs_GMTs/c3.all.v2023.2.Hs.entrez.gmt")
-
-## ReactomePA
-## Represented by MSigDB c2/CP/Reactome
-
-msigdb_reactome <-
-  read.gmt("./input/genesets/msigdb_v2023.2.Hs_GMTs/c2.cp.reactome.v2023.2.Hs.entrez.gmt")
-
-## KEGG
-## Represented by MSigDB c2/CP/KEGG_LEGACY
-
-msigdb_KEGG <-
-  read.gmt(
-    "./input/genesets/msigdb_v2023.2.Hs_GMTs/c2.cp.kegg_legacy.v2023.2.Hs.entrez.gmt"
-  )
+msigdb <- map(list_msigdb,
+              \ (x) read.gmt(here(
+                "input",
+                "genesets",
+                "msigdb_v2023.2.Hs_GMTs",
+                x
+              )))
 
 # Define function to convert EnrichResult to something that EnrichmentMap accepts
 
@@ -83,12 +49,15 @@ convert_EnrichResult_to_EnrichmentMap_table <-
 # Outputs folder in ./output/data_enrichment with all enrichment RDS objects
 # And gene lists ready for Cytoscape
 
-run_ORA <- function(genes_list, name_output) {
+run_ORA <- function(list_genes, name_output) {
   # Make prerequisite folders under ./output
   
   name_output <- as.character(name_output)
   
-  path_output <- file.path(getwd(), 'output', 'data_enrichment', 'ORA', name_output)
+  path_output <- here("output",
+                      "data_enrichment",
+                      "ORA",
+                      name_output)
   
   message(str_c("Output ORA results to", path_output, sep = " "))
   
@@ -98,111 +67,25 @@ run_ORA <- function(genes_list, name_output) {
   
   # Run ORA on GO gene sets
   
-  message(str_c("Running GOMF enrichment for", name_output, sep = " "))
-  
-  ORA_GOMF <- enricher(
-    genes_list,
-    TERM2GENE = msigdb_GOMF,
-    minGSSize = 25,
-    maxGSSize = 500
-  ) %>%
-    setReadable('org.Hs.eg.db', 'ENTREZID')
-  
-  message(str_c("Running GOBP enrichment for", name_output, sep = " "))
-  
-  ORA_GOBP <- enricher(
-    genes_list,
-    TERM2GENE = msigdb_GOBP,
-    minGSSize = 25,
-    maxGSSize = 500
-  ) %>%
-    setReadable('org.Hs.eg.db', 'ENTREZID')
-  
-  message(str_c("Running GOCC enrichment for", name_output, sep = " "))
-  
-  ORA_GOCC <- enricher(
-    genes_list,
-    TERM2GENE = msigdb_GOCC,
-    minGSSize = 25,
-    maxGSSize = 500
-  ) %>%
-    setReadable('org.Hs.eg.db', 'ENTREZID')
-  
-  # Run ORA on KEGG
-  
-  message(str_c("Running KEGG enrichment for", name_output, sep = " "))
-  
-  ORA_KEGG <- enricher(
-    genes_list,
-    TERM2GENE = msigdb_KEGG,
-    minGSSize = 25,
-    maxGSSize = 500
-  ) %>%
-    setReadable('org.Hs.eg.db', 'ENTREZID')
-  
-  # Run ORA on ReactomePA
-  
-  message(str_c("Running Reactome enrichment for", name_output, sep = " "))
-  
-  ORA_Reactome <-
-    enricher(
-      genes_list,
-      TERM2GENE = msigdb_reactome,
-      minGSSize = 25,
-      maxGSSize = 500
-    ) %>%
-    setReadable('org.Hs.eg.db', 'ENTREZID')
-  
-  # Run ORA on MSigDB
-  
-  message(str_c("Running MSigDB h enrichment for", name_output, sep = " "))
-  
-  ORA_MSigDB_h <-
-    enricher(
-      genes_list,
-      TERM2GENE = msigdb_h,
-      minGSSize = 25,
-      maxGSSize = 500
-    ) %>%
-    setReadable('org.Hs.eg.db', 'ENTREZID')
-  
-  message(str_c("Running MSigDB c2 enrichment for", name_output, sep = " "))
-  
-  ORA_MSigDB_c2 <-
-    enricher(
-      genes_list,
-      TERM2GENE = msigdb_c2,
-      minGSSize = 25,
-      maxGSSize = 500
-    ) %>%
-    setReadable('org.Hs.eg.db', 'ENTREZID')
-  
-  message(str_c("Running MSigDB c3 enrichment for", name_output, sep = " "))
-  
-  ORA_MSigDB_c3 <-
-    enricher(
-      genes_list,
-      TERM2GENE = msigdb_c3,
-      minGSSize = 25,
-      maxGSSize = 500
-    ) %>%
-    setReadable('org.Hs.eg.db', 'ENTREZID')
+  output <- map2(msigdb,
+                 names(msigdb),
+                 \ (x, y) {
+                   message(str_c("Running ",
+                                 y,
+                                 " enrichment for ",
+                                 name_output))
+                   enricher(
+                     list_genes,
+                     TERM2GENE = x,
+                     minGSSize = 15,
+                     maxGSSize = 1000
+                   ) %>%
+                     setReadable('org.Hs.eg.db', 'ENTREZID')
+                 })
   
   # Export RDS
   
   message(str_c("Saving RDS to", name_output, sep = " "))
-  
-  output <- list(
-    "GOBP" = ORA_GOBP,
-    "GOCC" = ORA_GOCC,
-    "GOMF" = ORA_GOMF,
-    "KEGG" = ORA_KEGG,
-    "MSigDB_h" = ORA_MSigDB_h,
-    "MSigDB_c2" = ORA_MSigDB_c2,
-    "MSigDB_c3" = ORA_MSigDB_c3,
-    "Reactome" = ORA_Reactome,
-    "path" = as.character(path_output)
-  )
   
   saveRDS(output, file = file.path(path_output, "ORA_results.RDS"))
   
@@ -213,78 +96,6 @@ run_ORA <- function(genes_list, name_output) {
     name_output,
     sep = " "
   ))
-  
-  ## GO gene sets
-  
-  write.table(
-    convert_EnrichResult_to_EnrichmentMap_table(ORA_GOMF),
-    file.path(path_output, "ORA_GOMF_table.txt"),
-    sep = "\t",
-    row.names = F,
-    quote = F
-  )
-  
-  write.table(
-    convert_EnrichResult_to_EnrichmentMap_table(ORA_GOBP),
-    file.path(path_output, "ORA_GOBP_table.txt"),
-    sep = "\t",
-    row.names = F,
-    quote = F
-  )
-  
-  write.table(
-    convert_EnrichResult_to_EnrichmentMap_table(ORA_GOCC),
-    file.path(path_output, "ORA_GOCC_table.txt"),
-    sep = "\t",
-    row.names = F,
-    quote = F
-  )
-  
-  ## KEGG
-  
-  write.table(
-    convert_EnrichResult_to_EnrichmentMap_table(ORA_KEGG),
-    file.path(path_output, "ORA_KEGG_table.txt"),
-    sep = "\t",
-    row.names = F,
-    quote = F
-  )
-  
-  ## ReactomePA
-  
-  write.table(
-    convert_EnrichResult_to_EnrichmentMap_table(ORA_Reactome),
-    file.path(path_output, "ORA_Reactome_table.txt"),
-    sep = "\t",
-    row.names = F,
-    quote = F
-  )
-  
-  ## MSigDB
-  
-  write.table(
-    convert_EnrichResult_to_EnrichmentMap_table(ORA_MSigDB_h),
-    file.path(path_output, "ORA_MSigDB_h_table.txt"),
-    sep = "\t",
-    row.names = F,
-    quote = F
-  )
-  
-  write.table(
-    convert_EnrichResult_to_EnrichmentMap_table(ORA_MSigDB_c2),
-    file.path(path_output, "ORA_MSigDB_c2_table.txt"),
-    sep = "\t",
-    row.names = F,
-    quote = F
-  )
-  
-  write.table(
-    convert_EnrichResult_to_EnrichmentMap_table(ORA_MSigDB_c3),
-    file.path(path_output, "ORA_MSigDB_c3_table.txt"),
-    sep = "\t",
-    row.names = F,
-    quote = F
-  )
   
   return(output)
   
