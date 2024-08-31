@@ -86,7 +86,8 @@ p_load(
   here,
   patchwork,
   fastcluster,
-  gprofiler2
+  gprofiler2,
+  figpatch
 )
 
 # Clean up package list
