@@ -82,9 +82,13 @@ quant_rg <- quant_rg[, keep]
 #### Sometimes quantile doesnt work for plotting (NA probes in some cases) so redo with Funnorm
 
 quant_ratioset_funnorm <- preprocessFunnorm(quant_rg, ratioConvert = FALSE) %>%
+  addQC(.,
+        getQC(.)) %>%
   ratioConvert(what = "both", 
                keepCN = TRUE)
-quant_mset_none <- preprocessRaw(quant_rg)
+quant_mset_none <- preprocessRaw(quant_rg) %>%
+  addQC(.,
+        getQC(.))
 
 # Quality control
 
