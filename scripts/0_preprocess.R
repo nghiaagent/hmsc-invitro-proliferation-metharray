@@ -26,48 +26,22 @@ quant_rg <- read.metharray.exp(targets = targets,
 
 # Load cross reactive and variant probes
 
-epic.cross1 <- read.csv(
-  file.path(
-    "input", "annotation",
-    pattern = "13059_2016_1066_MOESM1_ESM.csv"
-  )
-)
-epic.cross2 <- read.csv(
-  file.path(
-    "input", "annotation",
-    pattern = "13059_2016_1066_MOESM2_ESM.csv"
-  )
-)
-epic.cross3 <- read.csv(
-  file.path(
-    "input", "annotation",
-    pattern = "13059_2016_1066_MOESM3_ESM.csv"
-  )
-)
-epic.variants1 <- read.csv(
-  file.path(
-    "input", "annotation",
-    pattern = "13059_2016_1066_MOESM4_ESM.csv"
-  )
-)
-epic.variants2 <- read.csv(
-  file.path(
-    "input", "annotation",
-    pattern = "13059_2016_1066_MOESM5_ESM.csv"
-  )
-)
-epic.variants3 <- read.csv(
-  file.path(
-    "input", "annotation",
-    pattern = "13059_2016_1066_MOESM6_ESM.csv"
-  )
+list_pidsley_probes <- map(
+  list(
+    epic.cross1 = "13059_2016_1066_MOESM1_ESM.csv",
+    epic.variants1 = "13059_2016_1066_MOESM4_ESM.csv",
+    epic.variants2 = "13059_2016_1066_MOESM5_ESM.csv",
+    epic.variants3 = "13059_2016_1066_MOESM6_ESM.csv"
+  ),
+  \ (x) read_csv(here("input", "annotation", x))
 )
 
-excl_probes <- c(
-  as.character(epic.cross1$X),
-  as.character(epic.variants1$PROBE),
-  as.character(epic.variants2$PROBE),
-  as.character(epic.variants3$PROBE)
+excl_probes <- list_pidsley_probes %$%
+  c(
+  as.character(.$epic.cross1[[1]]),
+  as.character(.$epic.variants1$PROBE),
+  as.character(.$epic.variants2$PROBE),
+  as.character(.$epic.variants3$PROBE)
 ) %>% unique()
 
 # EXCLUDE BAD SAMPLES by detection p-val
@@ -89,21 +63,6 @@ quant_ratioset_funnorm <- preprocessFunnorm(quant_rg, ratioConvert = FALSE) %>%
 quant_mset_none <- preprocessRaw(quant_rg) %>%
   addQC(.,
         getQC(.))
-
-# Quality control
-
-## Draw QC plots
-
-plotQC(getQC(quant_mset_none))
-
-densityPlot(
-  quant_mset_none,
-  sampGroups = str_c(
-    quant_mset_none@colData$cell_line,
-    quant_mset_none@colData$timepoint,
-    sep = "_"
-  )
-)
 
 # Keep only probes detected in all samples
 # Keep only probes not associated with snps
