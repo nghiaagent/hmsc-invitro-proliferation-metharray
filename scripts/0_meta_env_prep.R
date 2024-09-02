@@ -108,4 +108,4 @@ future::plan(strategy = multisession, workers = 8)
 
 # Add color palettes
 
-pal2 <- palette.colors(n = 10, palette = "Polychrome 36")
+pal2 <- palette.colors(n = 36, palette = "Polychrome 36")
