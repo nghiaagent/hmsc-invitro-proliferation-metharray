@@ -6,7 +6,9 @@
 
 # Run preprocessing script if objects missing
 
-if (!exists(quant_ratioset_funnorm) | !exists(targets) | !exists(quant_mset_none)) {
+if (!exists("quant_ratioset_funnorm") |
+    !exists("targets") |
+    !exists("quant_mset_none")) {
   source(here("output", "scripts", "0_preprocess.R"))
 }
 
