@@ -75,7 +75,7 @@ map2(.x = results_mcsea,
          ),
          file = file.path("output",
                           "data_dmr",
-                          str_c("restults_mcsea_", y, ".xlsx")),
+                          str_c("results_mcsea_", y, ".xlsx")),
          asTable = TRUE,
          rowNames = TRUE
        )
