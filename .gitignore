@@ -6,6 +6,9 @@
 output/*
 !output/.gitkeep
 
+output/data_dmr/*
+!output/data_dmr/.gitkeep
+
 input/*
 !input/.gitkeep
 
