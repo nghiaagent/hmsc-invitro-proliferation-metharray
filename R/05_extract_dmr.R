@@ -5,6 +5,7 @@ here::i_am("R/05_extract_dmr.R")
 ####################
 
 # Import packages
+library(data.table)
 library(here)
 library(mCSEA)
 library(tidyverse)
