@@ -45,6 +45,9 @@ palette_msc <- c(
   late_treated = palette_merge[[6]]
 )
 
+# Palette 2
+pal2 <- palette.colors(palette = "Polychrome 36")
+
 # Palette 4: For Fig 4 to make quadrant genes more distinct
 palette_quadrant <- c(
   "DEG" = palette()[[4]],
