@@ -5,6 +5,9 @@ here::i_am("R/08_post_correlate_gene_expression.R")
 ####################
 
 # Import packages
+library(cowplot)
+library(DESeq2)
+library(ggpmisc)
 library(minfi)
 library(patchwork)
 library(purrr)
@@ -154,7 +157,7 @@ list_plots_all_dmps <- map2(
   axis_titles,
   \(results, titles) {
     results %>%
-      filter(!outcome_combined %in% c("ns")) %>%
+      dplyr::filter(!outcome_combined %in% c("ns")) %>%
       mutate(
         symbol_repel = case_when(
           outcome_combined %in% c("DEG", "ns") ~ NA,
@@ -217,13 +220,13 @@ results_merge_poi <- list(
   results_merge[[1]],
   results_merge[[2]],
   results_merge[[1]] %>%
-    filter(entrezid %in% geneids_nfkb),
+    dplyr::filter(entrezid %in% geneids_nfkb),
   results_merge[[2]] %>%
-    filter(entrezid %in% geneids_nfkb),
+    dplyr::filter(entrezid %in% geneids_nfkb),
   results_merge[[1]] %>%
-    filter(entrezid %in% geneids_tgfb),
+    dplyr::filter(entrezid %in% geneids_tgfb),
   results_merge[[2]] %>%
-    filter(entrezid %in% geneids_tgfb)
+    dplyr::filter(entrezid %in% geneids_tgfb)
 )
 
 list_plots_poi <- map2(
@@ -231,7 +234,7 @@ list_plots_poi <- map2(
   axis_titles_poi,
   \(results, titles) {
     results %>%
-      filter(!outcome_combined %in% c("ns")) %>%
+      dplyr::filter(!outcome_combined %in% c("ns")) %>%
       mutate(
         symbol_repel = case_when(
           outcome_combined %in% c("DEG", "ns") ~ NA,
