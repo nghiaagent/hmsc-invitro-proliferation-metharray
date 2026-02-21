@@ -1,10 +1,18 @@
-here::i_am("R/0_define_GOIs.R")
+here::i_am("R/02_explore_heatmap.R")
 
 ####################
-# 
+# Create exploratory heatmap of normalised M values
+# For my methylationEPICv1 data
 ####################
 
 # Import packages
+library(biganalytics)
+library(circlize)
+library(ComplexHeatmap)
+library(here)
+library(palettetown)
+library(tidyverse)
+library(viridis)
 
 # Load data
 

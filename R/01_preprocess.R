@@ -1,10 +1,13 @@
-here::i_am("R/0_define_GOIs.R")
+here::i_am("R/01_preprocess.R")
 
 ####################
-#
+# Load, process, and filter MethylationEPICv1 data
 ####################
 
 # Import packages
+library(here)
+library(minfi)
+library(tidyverse)
 
 # Load samples
 targets <- read.csv(

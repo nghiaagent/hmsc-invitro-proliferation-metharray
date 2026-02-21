@@ -1,17 +1,19 @@
+here::i_am("R/03_plots_thesis_chapter3_QC.R")
+
+####################
+# Build EDA plots for thesis chapter 3
+####################
+
+# Import packages
+library(here)
+library(minfi)
+library(tidyverse)
+
 # Construct QC figure
 # A: Per-sample detection p-value plots
 # B: QC plot
 # C: Density plot pre-norm
 # D: Density plot post-norm
-
-# Run preprocessing script if objects missing
-if (
-  !exists("quant_ratioset_funnorm") |
-    !exists("targets") |
-    !exists("quant_mset_none")
-) {
-  source(here("output", "scripts", "0_preprocess.R"))
-}
 
 ## Define plot layout and output
 png(

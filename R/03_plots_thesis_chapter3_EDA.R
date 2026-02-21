@@ -1,11 +1,16 @@
-# Run preprocessing script if objects missing
-if (
-  !exists("quant_ratioset_funnorm") |
-    !exists("targets") |
-    !exists("quant_mset_none")
-) {
-  source(here::here("scripts", "0_preprocess.R"))
-}
+here::i_am("R/03_plots_thesis_chapter3_EDA.R")
+
+####################
+# Build EDA plots for thesis chapter 3
+####################
+
+# Import packages
+library(circlize)
+library(ComplexHeatmap)
+library(here)
+library(minfi)
+library(tidyverse)
+library(viridis)
 
 # Construct QC figure
 # A: Per-sample detection p-value plots
