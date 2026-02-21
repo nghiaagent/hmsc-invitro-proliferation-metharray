@@ -13,7 +13,6 @@ library(here)
 library(tidyverse)
 
 # Obtain gene sets
-
 list_msigdb <- list(
   GOBP = "c5.go.bp.v2023.2.Hs.entrez.gmt",
   GOMF = "c5.go.mf.v2023.2.Hs.entrez.gmt",
@@ -35,7 +34,6 @@ msigdb <- map(list_msigdb, \(x) {
 })
 
 # Define function to convert EnrichResult to something that EnrichmentMap accepts
-
 convert_EnrichResult_to_EnrichmentMap_table <-
   function(EnrichResult) {
     EnrichResult@result %>%
@@ -61,12 +59,9 @@ convert_EnrichResult_to_EnrichmentMap_table <-
 # Takes gene list as input
 # Outputs folder in ./output/data_enrichment with all enrichment RDS objects
 # And gene lists ready for Cytoscape
-
 run_ORA <- function(list_genes, name_output) {
   # Make prerequisite folders under ./output
-
   name_output <- as.character(name_output)
-
   path_output <- here("output", "data_enrichment", "ORA", name_output)
 
   message(str_c("Output ORA results to", path_output, sep = " "))
@@ -76,7 +71,6 @@ run_ORA <- function(list_genes, name_output) {
   }
 
   # Run ORA on GO gene sets
-
   output <- map2(msigdb, names(msigdb), \(x, y) {
     message(str_c("Running ", y, " enrichment for ", name_output))
     enricher(
@@ -89,18 +83,17 @@ run_ORA <- function(list_genes, name_output) {
   })
 
   # Export RDS
-
   message(str_c("Saving RDS to", name_output, sep = " "))
 
   saveRDS(output, file = file.path(path_output, "ORA_results.RDS"))
 
   # Export table for Cytoscape
-
   message(str_c(
     "Saving table for Cytoscape/EnrichmentMap to",
     name_output,
     sep = " "
   ))
 
+  # Return data
   return(output)
 }
