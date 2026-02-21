@@ -1,11 +1,13 @@
 here::i_am("R/07_post_manhattan.R")
 
 ####################
-# Run ORA on gene lists of genes with DMRs
+# Create manhattan plots of DMRs
 ####################
 
 # Import packages
+library(EnhancedVolcano)
 library(EnsDb.Hsapiens.v86)
+library(ggmanh)
 library(ggplot2)
 library(patchwork)
 library(purrr)
@@ -97,8 +99,7 @@ results_mcsea_filter <- results_mcsea %>%
         SEQNAME = SEQNAME %>%
           factor(levels = c(1:22, "X"))
       ) %>%
-      group_by(GENENAME) %>%
-      slice(1)
+      group_by(GENENAME)
 
     # Combine
     results_out <- results %>%
