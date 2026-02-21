@@ -6,6 +6,7 @@ here::i_am("R/00_define_colours.R")
 
 # Import packages
 library(colorspace)
+library(grDevices)
 library(here)
 library(tidyverse)
 library(vctrs)
@@ -24,18 +25,18 @@ library(vctrs)
 ### 1321: Purple
 ### SH: Grey
 palette <- c(
-  palette.colors()[[6]],
-  palette.colors()[[7]],
-  palette.colors()[[4]],
-  palette.colors()[[5]],
-  palette.colors()[[2]],
-  palette.colors()[[8]],
-  palette.colors()[[9]]
+  grDevices::palette.colors()[[6]],
+  grDevices::palette.colors()[[7]],
+  grDevices::palette.colors()[[4]],
+  grDevices::palette.colors()[[5]],
+  grDevices::palette.colors()[[2]],
+  grDevices::palette.colors()[[8]],
+  grDevices::palette.colors()[[9]]
 )
 
-palette_merge <- vec_interleave(
-  lighten(palette, 0.2),
-  darken(palette, 0.2),
+palette_merge <- vctrs::vec_interleave(
+  colorspace::lighten(palette, 0.2),
+  colorspace::darken(palette, 0.2),
 )
 
 palette_msc <- c(
@@ -46,12 +47,12 @@ palette_msc <- c(
 )
 
 # Palette 2
-pal2 <- palette.colors(palette = "Polychrome 36")
+pal2 <- grDevices::palette.colors(palette = "Polychrome 36")
 
 # Palette 4: For Fig 4 to make quadrant genes more distinct
 palette_quadrant <- c(
-  "DEG" = palette()[[4]],
-  "DMR" = palette()[[2]],
-  "Both" = palette()[[6]],
-  "ns" = palette()[[8]] %>% darken(0.4)
+  "DEG" = grDevices::palette()[[4]],
+  "DMR" = grDevices::palette()[[2]],
+  "Both" = grDevices::palette()[[6]],
+  "ns" = grDevices::palette()[[8]] %>% colorspace::darken(0.4)
 )
