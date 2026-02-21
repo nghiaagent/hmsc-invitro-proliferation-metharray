@@ -10,28 +10,23 @@ library(purrr)
 library(tidyverse)
 
 # Load data
-
-names_dmr <- readRDS(here(
-  "output",
-  "data_dmr",
-  "names_dmr.RDS"
-))
-
-# Run g:OST GO enrichment
-
-results_gost <- map(
-  names_dmr,
-  \(x) gost(x, organism = "hsapiens")
-) %>%
-  compact()
-
-plots_gost <- map(
-  results_gost,
-  \(x) gostplot(x, interactive = FALSE)
+names_dmr <- readRDS(
+  file = here::here(
+    "output",
+    "data_dmr",
+    "names_dmr.RDS"
+  )
 )
 
-# Save data
+# Run g:OST GO enrichment
+results_gost <- names_dmr %>%
+  map(\(x) gost(x, organism = "hsapiens")) %>%
+  compact()
 
+plots_gost <- results_gost %>%
+  map(\(x) gostplot(x, interactive = FALSE))
+
+# Save data
 walk2(
   list(results_gost, plots_gost),
   c("results_gost", "plots_gost"),
