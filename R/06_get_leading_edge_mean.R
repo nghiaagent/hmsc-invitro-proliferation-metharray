@@ -2,6 +2,8 @@ here::i_am("R/06_get_leading_edge_mean.R")
 
 ####################
 # Calculate mean delta-beta of leading edge for each DMR in mCSEA results
+# To correlate DNA methylation statistics with logFC
+# DNA methylation statistic is defined (following mCSEA pub) as the mean beta-value of CpG probes forming the leading edge in each DMR.
 ####################
 
 # Import packages
@@ -14,28 +16,15 @@ library(purrr)
 library(tidyr)
 library(tidyverse)
 
-# Correlate DNA methylation statistics with logFC
-# DNA methylation statistic is defined (following mCSEA pub) as the mean beta-value of CpG probes forming the leading edge in each DMR.
-
 # Define function that calculates mean delta-beta of leading edges (provided as a column in an mCSEAResults object)
 calc_deltabeta <- function(leadingEdge, deltabetas) {
-  map(
-    .x = leadingEdge,
-    .f = \(x) {
-      strsplit(x, ", ") %>%
-        unlist()
-    },
-    .progress = TRUE
-  ) %>%
-    map(
-      .x = .,
-      .f = \(x) {
-        deltabetas %>%
-          .[names(.) %in% x] %>%
-          mean()
-      },
-      .progress = TRUE
-    ) %>%
+  leadingEdge %>%
+    map(\(x) unlist(strsplit(x, ", "))) %>%
+    map(\(x) {
+      deltabetas %>%
+        .[names(.) %in% x] %>%
+        mean()
+    }) %>%
     unlist()
 }
 
@@ -58,11 +47,12 @@ integrate_meth_expr <- function(
     filter(padj < 0.05) %>%
     mutate(GENENAME = rownames(.)) %>%
     select(!c("log2err", "pval")) %>%
-    left_join(., table_expr, by = join_by(GENENAME == GENENAME)) %>%
+    left_join(table_expr, by = join_by(GENENAME == GENENAME)) %>%
     drop_na(logFC) %>%
     mutate(leadingEdge_mean = calc_deltabeta(leadingEdge, deltabetas))
 
-  corrplot <- ggplot(data, aes(x = logFC, y = NES)) +
+  corrplot <- data %>%
+    ggplot(aes(x = logFC, y = NES)) +
     geom_point() +
     geom_smooth(method = "lm") +
     annotate(
@@ -71,13 +61,7 @@ integrate_meth_expr <- function(
       y = 0.3,
       label = paste0(
         "r = ",
-        round(
-          cor(
-            data$logFC,
-            data$NES
-          ),
-          5
-        )
+        round(cor(data$logFC, data$NES), 5)
       ),
       hjust = 0
     ) +
@@ -87,10 +71,7 @@ integrate_meth_expr <- function(
       y = -0.3,
       label = paste0(
         "p = ",
-        round(
-          cor.test(data$logFC, data$NES)$p.value,
-          5
-        )
+        round(cor.test(data$logFC, data$NES)$p.value, 5)
       ),
       hjust = 0
     )
@@ -128,25 +109,21 @@ results_mcsea <- list(
 # hMSC early UT: 200654430047_R01C01
 # hMSC early T : 200654430047_R02C01
 # hMSC late  UT: 200654430047_R03C01
-
-beta <- map(
-  list(
-    early_untreated = "200654430047_R01C01",
-    early_treated = "200654430047_R02C01",
-    late_untreated = "200654430047_R03C01",
-    late_treated = "200654430047_R04C01"
-  ),
-  \(x) getBeta(quant_ratioset_funnorm_filter)[, x]
-)
+beta <- list(
+  early_untreated = "200654430047_R01C01",
+  early_treated = "200654430047_R02C01",
+  late_untreated = "200654430047_R03C01",
+  late_treated = "200654430047_R04C01"
+) %>%
+  map(\(x) getBeta(quant_ratioset_funnorm_filter)[, x])
 
 deltabeta <- list(
-  timepoint_promoters = beta[["late_untreated"]] - beta[["early_untreated"]],
-  timepoint_genes = beta[["late_untreated"]] - beta[["early_untreated"]],
-  treatment_early_promoters = beta[["early_treated"]] -
-    beta[["early_untreated"]],
-  treatment_early_genes = beta[["early_treated"]] - beta[["early_untreated"]],
-  treatment_late_promoters = beta[["late_treated"]] - beta[["late_untreated"]],
-  treatment_late_genes = beta[["late_treated"]] - beta[["late_untreated"]]
+  timepoint_promoters = beta$late_untreated - beta$early_untreated,
+  timepoint_genes = beta$late_untreated - beta$early_untreated,
+  treatment_early_promoters = beta$early_treated - beta$early_untreated,
+  treatment_early_genes = beta$early_treated - beta$early_untreated,
+  treatment_late_promoters = beta$late_treated - beta$late_untreated,
+  treatment_late_genes = beta$late_treated - beta$late_untreated
 )
 
 # Get mean deltabeta of leading edge
