@@ -9,8 +9,9 @@ output/*
 output/data_dmr/*
 !output/data_dmr/.gitkeep
 
-input/*
-!input/.gitkeep
+input/annotation
+input/dnam_epic_v1
+input/txome
 
 # Bookdown output folders
 _book/*
