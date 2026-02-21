@@ -16,10 +16,14 @@ quant_ratioset_funnorm_filter <- readRDS(
     "output",
     "quant_ratioset_funnorm_filter.RDS"
   )
-) %>%
-  ## Filter for hMSC, untreated vs treated samples only
-  .[, colData(.)$cell_line == "hMSC"] %>%
-  .[, colData(.)$treatment != "neurosphere"]
+)
+## Filter for hMSC, untreated vs treated samples only
+quant_ratioset_funnorm_filter <- quant_ratioset_funnorm_filter[,
+  colData(quant_ratioset_funnorm_filter)$cell_line == "hMSC"
+]
+quant_ratioset_funnorm_filter <- quant_ratioset_funnorm_filter[,
+  colData(quant_ratioset_funnorm_filter)$treatment != "neurosphere"
+]
 
 # Make design matrix
 table_design <- colData(quant_ratioset_funnorm_filter) %>%
