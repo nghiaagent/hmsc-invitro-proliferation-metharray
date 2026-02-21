@@ -1,3 +1,14 @@
+here::i_am("R/05_extract_dmr.R")
+
+####################
+# Extract DMRs from mCSEA results
+####################
+
+# Import packages
+library(here)
+library(mCSEA)
+library(tidyverse)
+
 # Define function to extract genes (rownames) with padj < 0.05
 extract_siggenes <- function(fgsea_results, padj = 0.05) {
   filter(fgsea_results, padj < 0.05)

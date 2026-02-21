@@ -8,6 +8,7 @@ here::i_am("R/00_define_GOIs.R")
 # Import packages
 library(GSEABase)
 library(here)
+library(purrr)
 library(tidyverse)
 
 # Load external GMTs
