@@ -1,3 +1,16 @@
+here::i_am("R/03_plots_chapter6_explore.R")
+
+####################
+# Distribution of beta values by genomic region and relation to island
+# For thesis chapter 6
+####################
+
+# Import packages
+library(here)
+library(minfi)
+library(PupillometryR)
+library(tidyverse)
+
 # Load data
 quant_ratioset_funnorm_filter <- readRDS(
   file = here::here(
