@@ -9,10 +9,7 @@ library(clusterProfiler)
 library(tidyverse)
 library(vctrs)
 
-# Run ORA
-
 # Load data
-
 mcsea_heparin <- readRDS(
   file = file.path(
     "output",
