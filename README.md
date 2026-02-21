@@ -1,5 +1,4 @@
-# Genomic Profiling of Drivers of hMSC in vitro Proliferation and
-Differentiation Potential
+# Genomic Profiling of Drivers of hMSC in vitro Proliferation and Differentiation Potential
 
 
 # Introduction
