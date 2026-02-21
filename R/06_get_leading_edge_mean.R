@@ -133,7 +133,8 @@ results_mcsea <- map2(
   \(results, deltabeta) {
     results %>%
       mutate(leadingEdge_mean = calc_deltabeta(leadingEdge, deltabeta))
-  }
+  },
+  .progress = TRUE
 )
 
 # Save data
