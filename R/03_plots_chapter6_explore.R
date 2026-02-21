@@ -150,9 +150,7 @@ plot_gene_model <- df_beta_long %>%
     position = position_nudge(x = 0.2)
   ) +
   geom_boxplot(
-    aes(
-      colour = condition_id
-    ),
+    aes(colour = condition_id),
     outliers = FALSE,
     width = 0.2
   ) +
@@ -224,9 +222,7 @@ plot_island_model <- df_beta_long %>%
     position = position_nudge(x = 0.2)
   ) +
   geom_boxplot(
-    aes(
-      colour = condition_id
-    ),
+    aes(colour = condition_id),
     outliers = FALSE,
     width = 0.2
   ) +
