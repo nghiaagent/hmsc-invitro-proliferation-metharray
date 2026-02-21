@@ -1,3 +1,15 @@
+here::i_am("R/00_post_ORA_function.R")
+
+####################
+# Load external GMTs and
+# define functions for running ORA on gene lists extracted from Venn diagram
+####################
+
+# Import packages
+library(clusterProfiler)
+library(here)
+library(tidyverse)
+
 # Obtain gene sets
 
 list_msigdb <- list(
