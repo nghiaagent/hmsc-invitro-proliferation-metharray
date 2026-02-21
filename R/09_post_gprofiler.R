@@ -1,3 +1,14 @@
+here::i_am("R/09_post_gprofiler.R")
+
+####################
+# Run GO enrichment using g:gOST
+####################
+
+# Import packages
+library(gprofiler2)
+library(purrr)
+library(tidyverse)
+
 # Load data
 
 names_dmr <- readRDS(here(
