@@ -10,8 +10,9 @@ library(dplyr)
 library("IlluminaHumanMethylationEPICv2manifest")
 library("IlluminaHumanMethylationEPICv2anno.20a1.hg38")
 
-if (!require("BiocManager", quietly = TRUE))
+if (!require("BiocManager", quietly = TRUE)) {
   install.packages("BiocManager")
+}
 BiocManager::install(version = "3.18")
 
 
@@ -33,8 +34,7 @@ targets <- read.csv(
 targets$Basename <- file.path(
   "C:/Users/n9652906/OneDrive - Queensland University of Technology/Desktop/ReNcell Arrays/SampleSheet.csv",
   targets$Sentrix_ID,
-  paste(targets$Sentrix_ID, targets$Sentrix_Position, sep =
-          "_")
+  paste(targets$Sentrix_ID, targets$Sentrix_Position, sep = "_")
 )
 targets$ID <- paste(targets$Sample_Group)
 RGset <- read.metharray.exp(base = BaseDir, targets = targets)
@@ -54,7 +54,7 @@ dosing <- targets$Sample_Conditions
 passage <- targets$Sample_Passage
 
 
-detP <- detectionP(RGset)  #### Get Detection P values #####
+detP <- detectionP(RGset) #### Get Detection P values #####
 
 
 #--------------------------EXCLUDING BAD QUALITY SAMPLES------------------------------------------------------------------------------------------
@@ -74,7 +74,6 @@ mSetRaw <- preprocessRaw(RGset)
 #### mSetRaw is genuinely there just for plotting
 #### Quantile if not so different tissue types, Funnorm if very different tissue types.
 #### Sometimes quantile doesnt work for plotting (NA probes in some cases) so redo with Funnorm
-
 
 ###### MAKE SURE TO ADD PALETTES
 

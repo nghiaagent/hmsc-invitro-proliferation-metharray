@@ -1,6 +1,10 @@
 # Load data
 
-quant_beta_vals <- readRDS(file.path("output", "data_meth", "quant_beta_vals_hmsc.RDS"))
+quant_beta_vals <- readRDS(file.path(
+  "output",
+  "data_meth",
+  "quant_beta_vals_hmsc.RDS"
+))
 
 fit_contrasts <- readRDS(file.path("output", "data_meth", "fit_contrasts.RDS"))
 
@@ -44,11 +48,15 @@ mCSEAPlot(
 
 # Save data
 
-saveRDS(mcsea_heparin,
-        file = file.path("output", "data_dmr", "mcsea", "dmr_hMSC_heparin.RDS"))
+saveRDS(
+  mcsea_heparin,
+  file = file.path("output", "data_dmr", "mcsea", "dmr_hMSC_heparin.RDS")
+)
 
-saveRDS(mcsea_timepoint,
-        file = file.path("output", "data_dmr", "mcsea", "dmr_hMSC_timepoint.RDS"))
+saveRDS(
+  mcsea_timepoint,
+  file = file.path("output", "data_dmr", "mcsea", "dmr_hMSC_timepoint.RDS")
+)
 
 openxlsx::write.xlsx(
   list(

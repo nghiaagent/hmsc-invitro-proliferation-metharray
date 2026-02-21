@@ -4,36 +4,42 @@
 # Define function that calculates mean delta-beta of leading edges (provided as a column in an mCSEAResults object)
 
 calc_deltabeta <- function(leadingEdge, deltabetas) {
-  map(.x = leadingEdge,
+  map(
+    .x = leadingEdge,
+    .f = \(x) {
+      strsplit(x, ", ") %>%
+        unlist()
+    },
+    .progress = TRUE
+  ) %>%
+    map(
+      .x = .,
       .f = \(x) {
-        strsplit(x, ", ") %>%
-          unlist()
+        deltabetas %>%
+          .[names(.) %in% x] %>%
+          mean()
       },
-      .progress = TRUE) %>%
-    map(.x = .,
-        .f = \(x) {
-          deltabetas %>%
-            .[names(.) %in% x] %>%
-            mean()
-        },
-        .progress = TRUE) %>%
+      .progress = TRUE
+    ) %>%
     unlist()
 }
 
 # Define function that tabulates methylation and expression of genes with DMRs of selected type
 ## Includes gg correlation plot too!
 
-integrate_meth_expr <- function(coef,
-                                mCSEAResults,
-                                deltabetas,
-                                region = c("promoters", "genes")) {
+integrate_meth_expr <- function(
+  coef,
+  mCSEAResults,
+  deltabetas,
+  region = c("promoters", "genes")
+) {
   table_expr <- topTable(fit_contrasts, coef = coef, number = Inf) %>%
     dplyr::select(ENTREZID, GENENAME, logFC)
-  
+
   if (length(mCSEAResults[[region]] %>% filter(padj < 0.05)) < 1) {
     stop("There are no DMRs in this list")
   }
-  
+
   data <- mCSEAResults[[region]] %>%
     filter(padj < 0.05) %>%
     mutate(GENENAME = rownames(.)) %>%
@@ -41,26 +47,37 @@ integrate_meth_expr <- function(coef,
     left_join(., table_expr, by = join_by(GENENAME == GENENAME)) %>%
     drop_na(logFC) %>%
     mutate(leadingEdge_mean = calc_deltabeta(leadingEdge, deltabetas))
-  
+
   corrplot <- ggplot(data, aes(x = logFC, y = NES)) +
-    geom_point()  +
+    geom_point() +
     geom_smooth(method = "lm") +
     annotate(
       "text",
       x = 0,
       y = 0.3,
-      label = paste0("r = ", round(cor(
-        data$logFC, data$NES
-      ), 5)),
+      label = paste0(
+        "r = ",
+        round(
+          cor(
+            data$logFC,
+            data$NES
+          ),
+          5
+        )
+      ),
       hjust = 0
     ) +
     annotate(
       "text",
       x = 0,
       y = -0.3,
-      label = paste0("p = ", round(
-        cor.test(data$logFC, data$NES)$p.value, 5
-      )),
+      label = paste0(
+        "p = ",
+        round(
+          cor.test(data$logFC, data$NES)$p.value,
+          5
+        )
+      ),
       hjust = 0
     )
   return(list(data = data, corrplot = corrplot))
@@ -68,11 +85,21 @@ integrate_meth_expr <- function(coef,
 
 # Load data
 
-mcsea_heparin <- readRDS(file = here("output", "data_dmr", "mcsea_deltabeta", "dmr_hMSC_heparin.RDS"))
-mcsea_timepoint <- readRDS(file = here("output", "data_dmr", "mcsea_deltabeta", "dmr_hMSC_timepoint.RDS"))
-fit_contrasts <- readRDS(file = here("output", "data_expression", "post_DGE", "fit_contrasts.RDS"))
-quant_ratioset_funnorm_filter <- readRDS(file = here("output", "quant_ratioset_funnorm_filter.RDS"))
-quant_m_vals <- readRDS(file = here("output", "data_meth", "limma", "quant_m_vals_hmsc.RDS"))
+mcsea_heparin <- readRDS(
+  file = here("output", "data_dmr", "mcsea_deltabeta", "dmr_hMSC_heparin.RDS")
+)
+mcsea_timepoint <- readRDS(
+  file = here("output", "data_dmr", "mcsea_deltabeta", "dmr_hMSC_timepoint.RDS")
+)
+fit_contrasts <- readRDS(
+  file = here("output", "data_expression", "post_DGE", "fit_contrasts.RDS")
+)
+quant_ratioset_funnorm_filter <- readRDS(
+  file = here("output", "quant_ratioset_funnorm_filter.RDS")
+)
+quant_m_vals <- readRDS(
+  file = here("output", "data_meth", "limma", "quant_m_vals_hmsc.RDS")
+)
 beta_sel <- quant_ratioset_funnorm_filter[, c(
   "200654430047_R01C01",
   "200654430047_R02C01",
@@ -87,7 +114,7 @@ beta_sel <- quant_ratioset_funnorm_filter[, c(
 # hMSC early T : 200654430047_R02C01
 # hMSC late  UT: 200654430047_R03C01
 
-beta <- list( 
+beta <- list(
   # Define samples to extract
   early_untreated = "200654430047_R01C01",
   early_treated = "200654430047_R02C01",
@@ -100,7 +127,7 @@ beta <- list(
   })
 
 deltabeta_timepoint <- beta$late_untreated - beta$early_untreated
-deltabeta_treatment <- beta$early_treated  - beta$early_untreated
+deltabeta_treatment <- beta$early_treated - beta$early_untreated
 
 # Make logFC vs NES table for between passages data
 

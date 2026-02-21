@@ -1,8 +1,8 @@
 # Load data (replace with relevant path for your minfi RatioSet)
 quant_ratioset <- readRDS(
-    file = here::here(
-        "quant_ratioset_funnorm_filter.RDS"
-    )
+  file = here::here(
+    "quant_ratioset_funnorm_filter.RDS"
+  )
 )
 
 # Create limma EList object containing beta values for mCSEA
@@ -19,12 +19,12 @@ deltabeta <- beta_late_untreated - beta_early_untreated
 
 # Run mCSEATest (change nproc depending on computer, change platform depending on chip in use)
 results_mcsea <- mCSEATest(
-    rank = deltabeta,
-    methData = quant_beta_vals$E,
-    pheno = quant_beta_vals$targets,
-    minCpGs = 5,
-    nproc = 16,
-    platform = "EPIC"
+  rank = deltabeta,
+  methData = quant_beta_vals$E,
+  pheno = quant_beta_vals$targets,
+  minCpGs = 5,
+  nproc = 16,
+  platform = "EPIC"
 )
 
 # Save data

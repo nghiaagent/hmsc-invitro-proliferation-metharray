@@ -14,31 +14,31 @@
 ### 1321: Purple
 ### SH: Grey
 palette <- c(
-    palette.colors()[[6]],
-    palette.colors()[[7]],
-    palette.colors()[[4]],
-    palette.colors()[[5]],
-    palette.colors()[[2]],
-    palette.colors()[[8]],
-    palette.colors()[[9]]
+  palette.colors()[[6]],
+  palette.colors()[[7]],
+  palette.colors()[[4]],
+  palette.colors()[[5]],
+  palette.colors()[[2]],
+  palette.colors()[[8]],
+  palette.colors()[[9]]
 )
 
 palette_merge <- vec_interleave(
-    lighten(palette, 0.2),
-    darken(palette, 0.2),
+  lighten(palette, 0.2),
+  darken(palette, 0.2),
 )
 
 palette_msc <- c(
-    early_untreated = palette_merge[[1]],
-    early_treated = palette_merge[[2]],
-    late_untreated = palette_merge[[5]],
-    late_treated = palette_merge[[6]]
+  early_untreated = palette_merge[[1]],
+  early_treated = palette_merge[[2]],
+  late_untreated = palette_merge[[5]],
+  late_treated = palette_merge[[6]]
 )
 
 # Palette 4: For Fig 4 to make quadrant genes more distinct
 palette_quadrant <- c(
-    "DEG" = palette()[[4]],
-    "DMR" = palette()[[2]],
-    "Both" = palette()[[6]],
-    "ns" = palette()[[8]] %>% darken(0.4)
+  "DEG" = palette()[[4]],
+  "DMR" = palette()[[2]],
+  "Both" = palette()[[6]],
+  "ns" = palette()[[8]] %>% darken(0.4)
 )

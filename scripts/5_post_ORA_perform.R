@@ -2,19 +2,23 @@
 
 # Load data
 
-mcsea_heparin <- readRDS(file = file.path(
-  "output",
-  "data_dmr",
-  "mcsea_deltabeta",
-  "dmr_hMSC_heparin.RDS"
-))
+mcsea_heparin <- readRDS(
+  file = file.path(
+    "output",
+    "data_dmr",
+    "mcsea_deltabeta",
+    "dmr_hMSC_heparin.RDS"
+  )
+)
 
-mcsea_timepoint <- readRDS(file = file.path(
-  "output",
-  "data_dmr",
-  "mcsea_deltabeta",
-  "dmr_hMSC_timepoint.RDS"
-))
+mcsea_timepoint <- readRDS(
+  file = file.path(
+    "output",
+    "data_dmr",
+    "mcsea_deltabeta",
+    "dmr_hMSC_timepoint.RDS"
+  )
+)
 
 # Get list of genes
 # ENTREZID required for the ORA function
@@ -40,6 +44,6 @@ list_entrez <- purrr::map(list_dmr, .f = \(list) {
 
 # ORA between passages
 
-ora_results <- map2(.x = list_entrez,
-     .y = names(list_entrez),
-     .f = \(x, y) run_ORA(x, y))
+ora_results <- map2(.x = list_entrez, .y = names(list_entrez), .f = \(x, y) {
+  run_ORA(x, y)
+})
