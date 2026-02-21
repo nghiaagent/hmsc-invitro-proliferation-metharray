@@ -53,7 +53,7 @@ goi <- list(
 # Filter for necessary data
 ## Annotate with chromosome and location
 ## Select only relevant dataframes
-results_mcsea <- results_mcsea %>%
+results_mcsea_filter <- results_mcsea %>%
   map(\(results) {
     # Get annotation (chromosome and loc for each gene)
     annotation <- AnnotationDbi::select(
@@ -121,11 +121,7 @@ results_mcsea <- results_mcsea %>%
 
 # Create manhattan plots
 plots_manhattan <- pmap(
-  list(
-    results_mcsea,
-    goi,
-    titles
-  ),
+  list(results_mcsea_filter, goi, titles),
   \(results, goi, title) {
     results %>%
       mutate(
@@ -158,7 +154,7 @@ grid_manhattan <- plots_manhattan %>%
 
 # Create volcano plots
 plots_volcano2d <- map(
-  results_mcsea,
+  results_mcsea_filter,
   \(results) {
     EnhancedVolcano(
       results,

@@ -6,12 +6,13 @@ here::i_am("R/08_post_correlate_gene_expression.R")
 
 # Import packages
 library(minfi)
+library(patchwork)
 library(purrr)
 library(tidyverse)
 library(vctrs)
 
 # Load data
-## TXome
+## Transcriptome
 txome_quant_deseq2_batchcor <- readRDS(
   file = here::here(
     "input",
@@ -75,11 +76,10 @@ axis_titles_poi <- list(
 )
 
 # Compile appropriate fold changes and deltabetas
-## List of comparisons
-## P+5 vs. P+13 UT D3 (P13vsP5_UT_D3)
-## Treatment at P+5 D3 (Trt_P5_D3)
-## Treatment at P+13 D3 (Trt_P13_D3)
-
+# List of comparisons
+# P+5 vs. P+13 UT D3 (P13vsP5_UT_D3)
+# Treatment at P+5 D3 (Trt_P5_D3)
+# Treatment at P+13 D3 (Trt_P13_D3)
 ## txome data
 txome_results_filter <- list(
   timepoint_promoters = txome_results[["P13vsP5_UT_D3"]],
@@ -105,9 +105,7 @@ txome_results_filter <- list(
 
 ## DNAm data
 mcsea_results_filter <- results_mcsea %>%
-  map(
-    \(x) x %>% rownames_to_column(var = "gene_name")
-  )
+  map(\(x) rownames_to_column(x, var = "gene_name"))
 
 # Merge lists
 # Define colours based on signif level
@@ -142,18 +140,8 @@ results_merge <- map2(
           outcome_txome == 0 & outcome_dnam == 0 ~ "none"
         ) %>%
           factor(
-            levels = c(
-              "txome",
-              "dnam",
-              "both",
-              "none"
-            ),
-            labels = c(
-              "DEG",
-              "DMR",
-              "Both",
-              "ns"
-            )
+            levels = c("txome", "dnam", "both", "none"),
+            labels = c("DEG", "DMR", "Both", "ns")
           )
       )
   }
@@ -189,9 +177,7 @@ list_plots_all_dmps <- map2(
         size = 2
       ) +
       geom_text_repel(
-        aes(
-          colour = outcome_combined
-        ),
+        aes(colour = outcome_combined),
         min.segment.length = 2,
         max.overlaps = 30,
         force = 5,
@@ -268,9 +254,7 @@ list_plots_poi <- map2(
         size = 2
       ) +
       geom_text_repel(
-        aes(
-          colour = outcome_combined
-        ),
+        aes(colour = outcome_combined),
         min.segment.length = 2,
         max.overlaps = 30,
         force = 5,

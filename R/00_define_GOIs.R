@@ -8,6 +8,7 @@ here::i_am("R/00_define_GOIs.R")
 # Import packages
 library(GSEABase)
 library(here)
+library(org.Hs.eg.db)
 library(purrr)
 library(tidyverse)
 

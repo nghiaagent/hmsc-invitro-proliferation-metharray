@@ -22,7 +22,6 @@ results_mcsea <- readRDS(here::here(
 ))
 
 # Get list of DMRs
-
 list_dmr <- map(
   results_mcsea,
   \(results) {
@@ -83,6 +82,7 @@ openxlsx::write.xlsx(
   )
 )
 
+# Save list of DMRs
 map2(
   entrezid_dmr,
   names(entrezid_dmr),

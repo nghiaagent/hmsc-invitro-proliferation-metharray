@@ -9,12 +9,56 @@ library(here)
 library(minfi)
 library(tidyverse)
 
+# Load data
+## Sample sheet and detection p-values from preprocessing script
+targets <- readRDS(
+  file = here::here(
+    "output",
+    "targets.RDS"
+  )
+)
+
+det_p <- readRDS(
+  file = here::here(
+    "output",
+    "det_p.RDS"
+  )
+)
+
+## Ratiosets
+quant_rg <- readRDS(
+  file = here::here(
+    "output",
+    "quant_rg.RDS"
+  )
+)
+
+quant_mset_none <- readRDS(
+  file = here::here(
+    "output",
+    "quant_mset_none.RDS"
+  )
+)
+
+quant_ratioset_funnorm <- readRDS(
+  file = here::here(
+    "output",
+    "quant_ratioset_funnorm.RDS"
+  )
+)
+
+quant_ratioset_funnorm_filter <- readRDS(
+  file = here::here(
+    "output",
+    "quant_ratioset_funnorm_filter.RDS"
+  )
+)
+
 # Construct QC figure
 # A: Per-sample detection p-value plots
 # B: QC plot
 # C: Density plot pre-norm
 # D: Density plot post-norm
-
 ## Define plot layout and output
 png(
   file = "output/plots_QC/QC_combined.png",
@@ -26,16 +70,7 @@ png(
 
 layout(
   matrix(
-    c(
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      7
-    ),
+    c(1, 2, 3, 4, 5, 6, 7, 7),
     nrow = 4,
     ncol = 2,
     byrow = TRUE
@@ -46,14 +81,11 @@ layout(
 par(mar = c(2, 4, 2, 4))
 
 ## Plot mean detection p-values across all samples to identify any failed samples
-
 order <- targets$sample_name
-
 order2 <- targets$condition_notreat
 
-
 barplot(
-  colMeans(detP),
+  colMeans(det_p),
   col = pal2[order],
   las = 2,
   cex.names = 0.8,
@@ -63,37 +95,31 @@ barplot(
 )
 
 ## Plot mean channel intensity
-
 quant_mset_none %>%
   getQC() %>%
   plotQC()
 
 ## Plot beta values density, before and after normalization
-
 list(
   "Raw beta" = quant_rg,
   "Funnorm beta" = getBeta(quant_ratioset_funnorm)
-) %$%
-  walk2(
-    .,
-    names(.),
-    \(x, y) {
-      densityPlot(
-        x,
-        sampGroups = order,
-        main = y,
-        legend = FALSE,
-        pal = pal2[order],
-        lwd = 6
-      )
-    }
-  )
+) %>%
+  iwalk(\(x, y) {
+    densityPlot(
+      x,
+      sampGroups = order,
+      main = y,
+      legend = FALSE,
+      pal = pal2[order],
+      lwd = 6
+    )
+  })
 
 list(
   "Raw beta (color by cell type)" = quant_rg,
   "Funnorm beta (color by cell type)" = getBeta(quant_ratioset_funnorm)
-) %$%
-  walk2(., names(.), \(x, y) {
+) %>%
+  iwalk(\(x, y) {
     densityPlot(
       x,
       sampGroups = order2,
@@ -106,7 +132,6 @@ list(
   })
 
 # Plot legend
-
 plot(
   NULL,
   xaxt = "n",

@@ -17,11 +17,12 @@ quant_ratioset_funnorm_filter <- readRDS(
     "quant_ratioset_funnorm_filter.RDS"
   )
 ) %>%
-  .[, .@colData$cell_line == "hMSC"] %>%
-  .[, .@colData$treatment != "neurosphere"]
+  ## Filter for hMSC, untreated vs treated samples only
+  .[, colData(.)$cell_line == "hMSC"] %>%
+  .[, colData(.)$treatment != "neurosphere"]
 
 # Make design matrix
-table_design <- quant_ratioset_funnorm_filter@colData %>%
+table_design <- colData(quant_ratioset_funnorm_filter) %>%
   as.data.frame() %>%
   mutate(
     sample_name = factor(
@@ -34,53 +35,52 @@ table_design <- quant_ratioset_funnorm_filter@colData %>%
       )
     )
   ) %>%
-  mutate(slide = factor(slide)) %>%
-  mutate(timepoint = factor(timepoint, levels = c("early", "late"))) %>%
-  mutate(treatment = factor(treatment, levels = c("untreated", "heparin")))
+  mutate(
+    slide = slide %>%
+      factor(),
+    timepoint = timepoint %>%
+      factor(levels = c("early", "late")),
+    treatment = treatment %>%
+      factor(levels = c("untreated", "heparin"))
+  )
 
 # Create limma EList object containing beta values
 quant_beta_vals <- new("EList")
 quant_beta_vals$E <- getBeta(quant_ratioset_funnorm_filter)
 quant_beta_vals$targets <- table_design
-quant_beta_vals$genes <- quant_ratioset_funnorm_filter@rowRanges
+quant_beta_vals$genes <- rowRanges(quant_ratioset_funnorm_filter)
 
 # Extract beta values and relevant ranks
-beta <- map(
-  list(
-    early_untreated = "200654430047_R01C01",
-    early_treated = "200654430047_R02C01",
-    late_untreated = "200654430047_R03C01",
-    late_treated = "200654430047_R04C01"
-  ),
-  \(x) quant_beta_vals$E[, x]
-)
+beta <- list(
+  early_untreated = "200654430047_R01C01",
+  early_treated = "200654430047_R02C01",
+  late_untreated = "200654430047_R03C01",
+  late_treated = "200654430047_R04C01"
+) %>%
+  map(\(x) quant_beta_vals$E[, x])
 
-deltabeta <- list(
+# Run mCSEATest
+results_mcsea <- list(
   timepoint = beta[["late_untreated"]] - beta[["early_untreated"]],
   treatment_early = beta[["early_treated"]] - beta[["early_untreated"]],
   treatment_late = beta[["late_treated"]] - beta[["late_untreated"]]
-)
-
-# Run mCSEATest
-results_mcsea <- map(
-  deltabeta,
-  \(x) {
+) %>%
+  map(\(x) {
     mCSEATest(
       rank = x,
       methData = quant_beta_vals$E,
       pheno = quant_beta_vals$targets,
       minCpGs = 5,
-      nproc = 16,
+      nproc = 1,
       platform = "EPIC"
     )
-  }
-)
+  })
 
 # Save data
 ## RDS
 saveRDS(
   results_mcsea,
-  file = file.path(
+  file = here::here(
     "output",
     "data_dmr",
     "results_mcsea.RDS"
