@@ -1,4 +1,14 @@
+here::i_am("R/00_define_colours.R")
+
+####################
 # Define palettes
+####################
+
+# Import packages
+library(colorspace)
+library(here)
+library(tidyverse)
+library(vctrs)
 
 # Palette 1: Set of colours for cell lines and timepoints
 # hMSC P5, hMSC P7, hMSC P13, RCX, RVM, 1321, SH (7 colours) + treatment variant

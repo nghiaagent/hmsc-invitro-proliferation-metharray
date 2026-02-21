@@ -1,3 +1,15 @@
+here::i_am("R/00_define_GOIs.R")
+
+####################
+# Load external GMTs and
+# define genes of interest in my pathways of interest
+####################
+
+# Import packages
+library(GSEABase)
+library(here)
+library(tidyverse)
+
 # Load external GMTs
 list_gmt <- list(
   "h" = "msigdb_v2023.2.Hs_GMTs/h.all.v2023.2.Hs.entrez.gmt",
