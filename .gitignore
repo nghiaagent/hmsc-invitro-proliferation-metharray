@@ -3,12 +3,6 @@
 .RData
 .Ruserdata
 
-output/*
-!output/.gitkeep
-
-output/data_dmr/*
-!output/data_dmr/.gitkeep
-
 input/annotation
 input/dnam_epic_v1
 input/txome
@@ -18,6 +12,5 @@ _book/*
 _main_cache/*
 
 # File types
-
 *.pdf
 *.png
