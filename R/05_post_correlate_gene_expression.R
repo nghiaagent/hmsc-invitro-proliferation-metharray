@@ -1,3 +1,15 @@
+here::i_am("R/05_post_correlate_gene_expression.R")
+
+####################
+# Correlate DNA methylation statistics with logFC
+# Comparing leading edge against logFC of genes with DMRs in promoters and gene bodies
+####################
+
+# Import packages
+library(here)
+library(mCSEA)
+library(tidyverse)
+
 # Correlate DNA methylation statistics with logFC
 # DNA methylation statistic is defined (following mCSEA pub) as the mean beta-value of CpG probes forming the leading edge in each DMR.
 
