@@ -7,6 +7,8 @@ here::i_am("R/01_preprocess.R")
 # Import packages
 library(dplyr)
 library(here)
+library(IlluminaHumanMethylationEPICanno.ilm10b4.hg19)
+library(IlluminaHumanMethylationEPICmanifest)
 library(minfi)
 library(tidyverse)
 
@@ -26,40 +28,24 @@ targets <- read.csv(
       "dnam_epic_v1",
       slide,
       str_c(slide, array, sep = "_")
-    )
-  ) %>%
-  # Order factors
-  mutate(
-    cell_line = factor(
-      cell_line,
-      levels = c("hMSC", "hNSC")
-    )
-  ) %>%
-  mutate(
-    timepoint = factor(
-      timepoint,
-      levels = c("early", "late")
-    )
-  ) %>%
-  mutate(
-    treatment = factor(
-      treatment,
-      levels = c("untreated", "heparin", "neurosphere")
-    )
+    ),
+    # Order factors
+    cell_line = cell_line %>%
+      factor(levels = c("hMSC", "hNSC")),
+    timepoint = timepoint %>%
+      factor(levels = c("early", "late")),
+    treatment = treatment %>%
+      factor(levels = c("untreated", "heparin", "neurosphere"))
   ) %>%
   arrange(cell_line, timepoint, treatment) %>%
   # Order combined factors
   mutate(
     condition_notreat = str_c(cell_line, passage) %>%
       factor() %>%
-      fct_inorder()
-  ) %>%
-  mutate(
+      fct_inorder(),
     condition_nocell = str_c(timepoint, treatment) %>%
       factor() %>%
-      fct_inorder()
-  ) %>%
-  mutate(
+      fct_inorder(),
     sample_name = factor(sample_name) %>%
       fct_inorder()
   )
@@ -101,10 +87,8 @@ quant_rg <- quant_rg[, keep]
 #### Funnorm if very different tissue types.
 #### Sometimes quantile doesnt work for plotting
 #### (NA probes in some cases) so redo with Funnorm
-quant_ratioset_funnorm <- preprocessFunnorm(
-  quant_rg,
-  ratioConvert = FALSE
-) %>%
+quant_ratioset_funnorm <- quant_rg %>%
+  preprocessFunnorm(ratioConvert = FALSE) %>%
   addQC(
     .,
     getQC(.)
@@ -114,7 +98,8 @@ quant_ratioset_funnorm <- preprocessFunnorm(
     keepCN = TRUE
   )
 
-quant_mset_none <- preprocessRaw(quant_rg) %>%
+quant_mset_none <- quant_rg %>%
+  preprocessRaw() %>%
   addQC(
     .,
     getQC(.)
@@ -130,7 +115,6 @@ det_p <- detectionP(quant_rg)[
 ]
 
 keep <- rowSums(det_p < 0.01) == ncol(quant_ratioset_funnorm)
-
 table(keep)
 
 quant_ratioset_funnorm_filter <- quant_ratioset_funnorm[keep, ] %>%
@@ -138,12 +122,40 @@ quant_ratioset_funnorm_filter <- quant_ratioset_funnorm[keep, ] %>%
 
 # Keep only probes that are not cross-reactive
 keep <- !(featureNames(quant_ratioset_funnorm_filter) %in% excl_probes)
-
 table(keep)
 
 quant_ratioset_funnorm_filter <- quant_ratioset_funnorm_filter[keep, ]
 
 # Save data
+# RGset, Mset raw, Mset funnorm, Mset funnorm filtered, detection p-values, targets
+## RGset
+saveRDS(
+  quant_rg,
+  file = here::here(
+    "output",
+    "quant_rg.RDS"
+  )
+)
+
+## Mset raw
+saveRDS(
+  quant_mset_none,
+  file = here::here(
+    "output",
+    "quant_mset_none.RDS"
+  )
+)
+
+## Ratioset funnorm
+saveRDS(
+  quant_ratioset_funnorm,
+  file = here::here(
+    "output",
+    "quant_ratioset_funnorm.RDS"
+  )
+)
+
+## Ratioset funnorm filtered
 saveRDS(
   quant_ratioset_funnorm_filter,
   file = here::here(
@@ -152,6 +164,16 @@ saveRDS(
   )
 )
 
+## Detection p vals
+saveRDS(
+  det_p,
+  file = here::here(
+    "output",
+    "det_p.RDS"
+  )
+)
+
+## Sample sheet
 saveRDS(
   targets,
   file = here::here(
