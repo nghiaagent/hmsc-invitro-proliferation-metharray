@@ -7,6 +7,8 @@ here::i_am("R/00_post_ORA_function.R")
 
 # Import packages
 library(clusterProfiler)
+library(dplyr)
+library(purrr)
 library(here)
 library(tidyverse)
 

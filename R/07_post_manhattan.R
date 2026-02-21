@@ -1,3 +1,17 @@
+here::i_am("R/07_post_manhattan.R")
+
+####################
+# Run ORA on gene lists of genes with DMRs
+####################
+
+# Import packages
+library(EnsDb.Hsapiens.v86)
+library(ggplot2)
+library(patchwork)
+library(purrr)
+library(tidyverse)
+library(vctrs)
+
 # Load data
 results_mcsea <- readRDS(
   file = file.path(

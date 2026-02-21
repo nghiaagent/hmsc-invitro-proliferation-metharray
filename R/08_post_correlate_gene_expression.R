@@ -1,3 +1,15 @@
+here::i_am("R/08_post_correlate_gene_expression.R")
+
+####################
+# Build 2x2 way plots to correlate DNA methylation statistics with logFC
+####################
+
+# Import packages
+library(minfi)
+library(purrr)
+library(tidyverse)
+library(vctrs)
+
 # Load data
 ## TXome
 txome_quant_deseq2_batchcor <- readRDS(

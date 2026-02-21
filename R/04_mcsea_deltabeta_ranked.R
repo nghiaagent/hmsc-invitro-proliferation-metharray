@@ -1,3 +1,15 @@
+here::i_am("R/04_mcsea_deltabeta_ranked.R")
+
+####################
+# Calculate scores for mCSEA using rank of beta differences
+####################
+
+# Import packages
+library(here)
+library(mCSEA)
+library(minfi)
+library(tidyverse)
+
 # Load data
 quant_ratioset_funnorm_filter <- readRDS(
   file = file.path(
